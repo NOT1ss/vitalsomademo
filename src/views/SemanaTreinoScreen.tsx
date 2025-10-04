@@ -1,8 +1,5 @@
-// src/views/SemanaTreinoScreen.tsx
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -15,16 +12,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { RootStackParamList } from '../navigation/types';
+import AchievementCard from '../componentes/AchievementCard';
+import RecordDisplayCard from '../componentes/RecordDisplayCard';
+import { DiaSemana } from '../models/semanaTreinoModel';
 import { useSemanaTreinoViewModel } from '../viewmodels/useSemanaTreinoViewModel';
 
 const windowWidth = Dimensions.get('window').width;
 const circleSize = (windowWidth - 40) / 7 - 8;
 
-type SemanaTreinoNavigationProp = StackNavigationProp<RootStackParamList, 'SemanaTreino'>;
-type SemanaTreinoRouteProp = RouteProp<RootStackParamList, 'SemanaTreino'>;
-
-const DiaItem = ({ dia, isSelected, onPress }: { dia: any, isSelected: boolean, onPress: () => void }) => (
+const DiaItem = ({ dia, isSelected, onPress }: { dia: DiaSemana, isSelected: boolean, onPress: () => void }) => (
   <TouchableOpacity style={styles.diaContainer} onPress={onPress}>
     <Text style={[styles.diaTextoAbreviado, isSelected && styles.diaSelecionadoTexto]}>{dia.diaAbreviado}</Text>
     <View style={[styles.circuloDia, isSelected && styles.circuloDiaSelecionado, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}>
@@ -36,14 +32,12 @@ const DiaItem = ({ dia, isSelected, onPress }: { dia: any, isSelected: boolean, 
 );
 
 export default function SemanaTreinoScreen() {
-  const navigation = useNavigation<SemanaTreinoNavigationProp>();
-  const route = useRoute<SemanaTreinoRouteProp>();
-
   const {
     dias,
     diaSelecionado,
     isLoading,
-    atualizarDia,
+    achievements,
+    personalRecords,
     handleMarcarConcluido,
     handleSelecionarDia,
     handleGoBack,
@@ -52,53 +46,83 @@ export default function SemanaTreinoScreen() {
     handleVerMaisCalendario,
   } = useSemanaTreinoViewModel();
 
-  const [recordeInfo, setRecordeInfo] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (route.params?.novoRecorde) {
-      setRecordeInfo(route.params.novoRecorde);
-      navigation.setParams({ novoRecorde: undefined });
-      const timer = setTimeout(() => setRecordeInfo(null), 5000);
-      return () => clearTimeout(timer);
-    }
-    if (route.params?.diaAtualizado) {
-      atualizarDia(route.params.diaAtualizado);
-      navigation.setParams({ diaAtualizado: undefined });
-    }
-  }, [route.params]);
-
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}><View style={styles.loadingContainer}><ActivityIndicator size="large" color="#1e6a43" /></View></SafeAreaView>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#1e6a43" />
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={28} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Semana</Text>
+        <View style={{ width: 28 }} />{/* Espaço para centralizar o título */}
+      </View>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.seletorSemana}>
           {dias?.map((dia) => (
             <DiaItem key={dia.id} dia={dia} isSelected={dia.id === diaSelecionado?.id} onPress={() => handleSelecionarDia(dia)} />
           ))}
         </View>
-        <TouchableOpacity onPress={handleVerMaisCalendario}><Text style={styles.verMais}>Ver mais</Text></TouchableOpacity>
+        <TouchableOpacity onPress={handleVerMaisCalendario}>
+            <Text style={styles.verMais}>Ver mais</Text>
+        </TouchableOpacity>
         <Text style={styles.diaCompletoTitulo}>{diaSelecionado?.diaCompleto}</Text>
         {diaSelecionado && diaSelecionado.exercicios.length > 0 ? (
-          <FlatList horizontal data={diaSelecionado.exercicios} keyExtractor={(item) => item.id} renderItem={({ item }) => (
-              <View style={styles.exercicioCard}><Text style={styles.exercicioNome}>{item.nome}</Text><Image source={item.imagem} style={styles.exercicioImagem} resizeMode="contain" /></View>
-            )} showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 20 }} />
+          <FlatList 
+            horizontal 
+            data={diaSelecionado.exercicios} 
+            keyExtractor={(item) => item.id} 
+            renderItem={({ item }) => (
+              <View style={styles.exercicioCard}>
+                <Text style={styles.exercicioNome}>{item.nome}</Text>
+                <Image source={item.imagem} style={styles.exercicioImagem} resizeMode="contain" />
+              </View>
+            )} 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={{ paddingVertical: 20 }} 
+          />
         ) : (
-          <View style={styles.semTreinoContainer}><Text style={styles.semTreinoTexto}>Nenhum treino para este dia.</Text></View>
+          <View style={styles.semTreinoContainer}>
+            <Text style={styles.semTreinoTexto}>Nenhum treino para este dia.</Text>
+          </View>
         )}
         <View style={styles.botoesAcaoContainer}>
-          <TouchableOpacity style={styles.botaoAcao} onPress={handleTreinar}><Text style={styles.botaoAcaoTexto}>Treinar</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.botaoAcao, styles.botaoConcluido]} onPress={handleMarcarConcluido}><Text style={[styles.botaoAcaoTexto, { color: '#fff' }]}>Concluído</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.botaoAcao} onPress={handleVerTreino}><Text style={styles.botaoAcaoTexto}>Ver treino</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.botaoAcao} onPress={handleTreinar}>
+            <Text style={styles.botaoAcaoTexto}>Treinar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.botaoAcao, styles.botaoConcluido]} onPress={handleMarcarConcluido}>
+            <Text style={[styles.botaoAcaoTexto, { color: '#fff' }]}>Concluído</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.botaoAcao} onPress={handleVerTreino}>
+            <Text style={styles.botaoAcaoTexto}>Ver treino</Text>
+          </TouchableOpacity>
         </View>
-        {recordeInfo && (<View style={styles.gamificacaoCard}><Ionicons name="trophy" size={24} color="#FBBF24" /><View style={styles.gamificacaoTextoContainer}><Text style={styles.gamificacaoTitulo}>Parabéns</Text><Text style={styles.gamificacaoSubtitulo}>Você bateu um recorde!</Text></View><Text style={styles.gamificacaoDestaque}>{recordeInfo}</Text></View>)}
-        <View style={styles.gamificacaoCard}><Ionicons name="flame" size={24} color="#EF4444" /><View style={styles.gamificacaoTextoContainer}><Text style={styles.gamificacaoTitulo}>Ofensiva</Text><Text style={styles.gamificacaoSubtitulo}>Você está em uma sequência de dias treinados.</Text></View><Text style={styles.gamificacaoDestaque}>3 Dias</Text></View>
-        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}><Ionicons name="arrow-back" size={28} color="#333" /></TouchableOpacity>
+
+        <View style={styles.achievementsContainer}>
+          {achievements.record && <AchievementCard {...achievements.record} />}
+          {achievements.streak && <AchievementCard {...achievements.streak} />}
+        </View>
+
+        <View style={styles.recordsContainer}>
+          <Text style={styles.recordsTitle}>Meus Recordes</Text>
+          <FlatList
+            horizontal
+            data={personalRecords}
+            keyExtractor={item => item[0]}
+            renderItem={({ item }) => <RecordDisplayCard exercicio={item[0]} valor={item[1]} />}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingVertical: 10 }}
+          />
+        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );
@@ -107,8 +131,26 @@ export default function SemanaTreinoScreen() {
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#f0f0f0' },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    container: { padding: 20, alignItems: 'center' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+    headerContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingTop: 20, // Adjust as needed for status bar
+      paddingBottom: 10,
+      width: '100%',
+    },
+    backButton: {
+      // O estilo pode ser ajustado conforme necessário
+    },
+    headerTitle: { 
+      fontSize: 24, 
+      fontWeight: 'bold',
+    },
+    achievementsContainer: {
+      width: '100%',
+    },
+    container: { padding: 20, alignItems: 'center', paddingTop: 10 },
     seletorSemana: { flexDirection: 'row', justifyContent: 'space-between', width: '100%', marginBottom: 5 },
     diaContainer: { alignItems: 'center', flex: 1 },
     diaTextoAbreviado: { color: '#888', marginBottom: 5, fontWeight: '500' },
@@ -125,12 +167,16 @@ const styles = StyleSheet.create({
     botaoAcao: { borderWidth: 1.5, borderColor: '#16A34A', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 20 },
     botaoAcaoTexto: { color: '#16A34A', fontWeight: 'bold' },
     botaoConcluido: { backgroundColor: '#16A34A' },
-    gamificacaoCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, padding: 15, alignItems: 'center', width: '100%', marginBottom: 15, elevation: 2 },
-    gamificacaoTextoContainer: { flex: 1, marginLeft: 10 },
-    gamificacaoTitulo: { fontWeight: 'bold' },
-    gamificacaoSubtitulo: { fontSize: 12, color: '#666' },
-    gamificacaoDestaque: { fontWeight: 'bold', color: '#16A34A' },
-    backButton: { marginTop: 20, alignSelf: 'flex-start' },
+    recordsContainer: {
+      width: '100%',
+      marginTop: 10,
+    },
+    recordsTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      alignSelf: 'flex-start',
+      marginBottom: 10,
+    },
     semTreinoContainer: { height: 180, justifyContent: 'center', alignItems: 'center', width: '100%' },
     semTreinoTexto: { fontSize: 16, color: '#888' },
 });

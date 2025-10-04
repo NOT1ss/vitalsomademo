@@ -16,8 +16,7 @@ import useEditarTreinoViewModel from '../viewmodels/useEditorTreinoViewModel';
 
 export default function EditarTreinoScreen() {
     const navigation = useNavigation();
-    // CORREÇÃO: O nome correto da função é 'handleAdicionarExercicio'
-    const { dia, exercicios, handleAdicionarExercicio, handleRemoverExercicio, handleSalvar } = useEditarTreinoViewModel();
+    const { dia, exercicios, handleAdicionarExercicio, handleRemoverExercicio } = useEditarTreinoViewModel();
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -36,7 +35,7 @@ export default function EditarTreinoScreen() {
                                 <Text style={styles.exercicioNome}>{item.nome}</Text>
                                 <Text style={styles.exercicioDesc}>{item.series} séries de {item.repeticoes} reps com {item.carga}</Text>
                              </View>
-                             <TouchableOpacity style={styles.removerButton} onPress={() => handleRemoverExercicio(item.id)}>
+                             <TouchableOpacity style={styles.removerButton} onPress={() => handleRemoverExercicio(item.db_id, item.id)}>
                                  <Ionicons name="trash-outline" size={20} color="#DC2626" />
                              </TouchableOpacity>
                         </View>
@@ -54,9 +53,6 @@ export default function EditarTreinoScreen() {
                 <View style={styles.footerButtons}>
                     <TouchableOpacity style={styles.footerButton} onPress={() => navigation.goBack()}>
                         <Text style={styles.footerButtonText}>Voltar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.footerButton, styles.salvarButton]} onPress={handleSalvar}>
-                        <Text style={[styles.footerButtonText, {color: '#fff'}]}>Salvar Alterações</Text>
                     </TouchableOpacity>
                 </View>
             </View>

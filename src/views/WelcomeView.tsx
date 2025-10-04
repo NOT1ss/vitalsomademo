@@ -1,69 +1,35 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import {
-  Animated,
+  ActivityIndicator,
   Image,
   StyleSheet,
+  Text,
   View,
 } from 'react-native';
 import { useWelcomeViewModel } from '../viewmodels/useWelcomeViewModel';
 
 export default function WelcomeView() {
-  const fillAnim = useRef(new Animated.Value(0)).current;
   const { checkUserAsync, navigation } = useWelcomeViewModel();
 
-  const [animationDone, setAnimationDone] = useState(false);
-  const [userChecked, setUserChecked] = useState(false);
-  const [nextScreen, setNextScreen] = useState<'Login' | 'MainApp' | null>(null);
-
   useEffect(() => {
-    Animated.timing(fillAnim, {
-      toValue: 1,
-      duration: 1999,
-      useNativeDriver: false,
-    }).start(() => {
-      setTimeout(() => {
-        setAnimationDone(true);
-      }, 10);
-    });
+    const navigate = async () => {
+      const screen = await checkUserAsync();
+      navigation.navigate(screen);
+    };
 
-    // Checa usuário em paralelo
-    (async () => {
-      const screen = await checkUserAsync(); // retorna 'Login' ou 'Home'
-      setNextScreen(screen);
-      setUserChecked(true);
-    })();
+    // Apenas para garantir que a tela de loading seja vista brevemente
+    setTimeout(navigate, 1500); 
   }, []);
-
-  useEffect(() => {
-    if (animationDone && userChecked && nextScreen) {
-      navigation.navigate(nextScreen);
-    }
-  }, [animationDone, userChecked, nextScreen]);
-
-  const maskHeight = fillAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0%', '100%'],
-  });
 
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../assets/images/1.png')}
+        source={require('../../assets/images/2.png')} // Usando a logo colorida
         style={styles.logo}
         resizeMode="contain"
       />
-      <Animated.View
-        style={[
-          styles.logoOverlay,
-          { height: maskHeight },
-        ]}
-      >
-        <Image
-          source={require('../../assets/images/2.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </Animated.View>
+      <ActivityIndicator size="large" color="#00695C" style={styles.spinner} />
+      <Text style={styles.loadingText}>Carregando...</Text>
     </View>
   );
 }
@@ -76,13 +42,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logo: {
-    width: 250,
-    height: 250,
+    width: '60%', // Largura responsiva
+    aspectRatio: 1, // Mantém a proporção
+    marginBottom: 40,
   },
-  logoOverlay: {
-    position: 'absolute',
-    bottom: '35%',
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
+  spinner: {
+    transform: [{ scale: 1.5 }], // Deixa o spinner um pouco maior
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: '#666',
   },
 });

@@ -3,48 +3,111 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { ExercicioCompleto, exercicioPadrao } from '../models/semanaTreinoModel';
-// CORREÇÃO: Importa os tipos do novo arquivo
+import { ExercicioCompleto } from '../models/semanaTreinoModel';
 import { RootStackParamList } from '../navigation/types';
+import {
+  getPersonalRecords,
+  getUserProfile,
+  saveExercisesForDate,
+  updateDailySummary,
+  updatePersonalRecord
+} from '../services/saudeService';
 
-type RegistrarTreinoNavProp = StackNavigationProp<RootStackParamList, 'RegistrarTreino'>;
 type RegistrarTreinoRouteProp = RouteProp<RootStackParamList, 'RegistrarTreino'>;
+type NavigationProp = StackNavigationProp<RootStackParamList, 'RegistrarTreino'>;
 
-export default function useRegistrarTreinoViewModel() {
-  const navigation = useNavigation<RegistrarTreinoNavProp>();
+export function useRegistrarTreinoViewModel() {
+  const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RegistrarTreinoRouteProp>();
-  // O resto do código permanece o mesmo...
-  const { dia, from } = route.params;
+  const { dia } = route.params;
 
-  const [exercicios, setExercicios] = useState<ExercicioCompleto[]>(() => {
-    return dia.exercicios.length > 0 ? [...dia.exercicios] : [];
-  });
+  const [exerciciosDoDia, setExerciciosDoDia] = useState<ExercicioCompleto[]>(dia.exercicios || []);
 
-  const atualizarExercicio = (exercicioId: string, campo: keyof ExercicioCompleto, valor: string) => {
-    setExercicios(prev => 
-      prev.map(ex => ex.id === exercicioId ? { ...ex, [campo]: valor } : ex)
-    );
-  };
-
-  const adicionarExercicio = () => {
+  const handleAdicionarExercicio = () => {
     const novoExercicio: ExercicioCompleto = {
-      ...exercicioPadrao,
-      id: `ex-${Date.now()}`,
+      id: Date.now().toString(),
+      nome: '',
+      series: '',
+      repeticoes: '',
+      carga: '',
+      imagem: require('../../assets/images/image 40.png'),
     };
-    setExercicios(prev => [...prev, novoExercicio]);
+    setExerciciosDoDia([...exerciciosDoDia, novoExercicio]);
   };
 
-  const handleSalvarEVoltar = () => {
-    const diaAtualizado = { ...dia, exercicios, status: 'concluido' as const };
-    
-    if (from === 'EditarTreino') {
-        navigation.navigate('EditarTreino', { dia: diaAtualizado, diaAtualizado: diaAtualizado });
-    } else {
-        navigation.navigate('SemanaTreino', { diaAtualizado });
+  const handleAtualizarExercicio = (id: string, campo: keyof ExercicioCompleto, valor: string) => {
+    let valorFiltrado = valor;
+    if (campo === 'series' || campo === 'repeticoes' || campo === 'carga') {
+      // Permite apenas números e um separador decimal (ponto ou vírgula)
+      valorFiltrado = valor.replace(/[^0-9.,]/g, '');
     }
-    
-    Alert.alert("Sucesso", "Treino salvo!");
+
+    const novosExercicios = exerciciosDoDia.map(ex => {
+      if (ex.id === id) {
+        return { ...ex, [campo]: valorFiltrado };
+      }
+      return ex;
+    });
+    setExerciciosDoDia(novosExercicios);
   };
 
-  return { dia, exercicios, adicionarExercicio, atualizarExercicio, handleSalvarEVoltar };
+  const handleRemoverExercicio = (index: number) => {
+    const novosExercicios = [...exerciciosDoDia];
+    novosExercicios.splice(index, 1);
+    setExerciciosDoDia(novosExercicios);
+  };
+
+  const handleSalvarTreino = async () => {
+    const treinosValidos = exerciciosDoDia.filter(ex => ex.nome.trim() !== '');
+
+    try {
+      const dateString = dia.data.toISOString().split('T')[0];
+      const profile = await getUserProfile();
+      if (!profile) {
+        throw new Error("Perfil não encontrado");
+      }
+
+      // O erro estava na chamada a uma função que não existe mais. Foi removida.
+
+      const recordesAtuais = await getPersonalRecords();
+      await saveExercisesForDate(dateString, treinosValidos);
+      await updateDailySummary(profile.id, { training_completed: treinosValidos.length > 0 }, dateString);
+
+      /* Bloco de atualização de recordes desativado temporariamente.
+      for (const exercicio of treinosValidos) {
+        const cargaNumerica = parseFloat(exercicio.carga.replace(/[^0-9.]/g, ''));
+        if (isNaN(cargaNumerica) || cargaNumerica <= 0) continue;
+
+        const recordeAtualString = recordesAtuais.get(exercicio.nome) || '0';
+        const recordeAtualNumerico = parseFloat(recordeAtualString.replace(/[^0-9.]/g, ''));
+
+        if (cargaNumerica > recordeAtualNumerico) {
+          await updatePersonalRecord(exercicio.nome, exercicio.carga);
+        }
+      }
+      */
+      
+      Alert.alert('Sucesso!', 'Seu treino foi salvo.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+
+    } catch (error) {
+      console.error("Erro ao salvar treino e recordes:", error);
+      Alert.alert('Erro', 'Não foi possível salvar seu treino.');
+    }
+  };
+  
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  return {
+    dia,
+    exerciciosDoDia,
+    handleAdicionarExercicio,
+    handleAtualizarExercicio,
+    handleRemoverExercicio,
+    handleSalvarTreino,
+    handleGoBack,
+  };
 }

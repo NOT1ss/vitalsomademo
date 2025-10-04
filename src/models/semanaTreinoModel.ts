@@ -7,6 +7,7 @@ export interface Exercicio {
 }
 
 export interface ExercicioCompleto extends Exercicio {
+  db_id: number; // ID do exercício no banco de dados
   series: string;
   repeticoes: string;
   carga: string;
@@ -36,40 +37,31 @@ export const exercicioPadrao: ExercicioCompleto = {
 
 // --- FUNÇÃO PARA GERAR A SEMANA DINAMICAMENTE ---
 
-export const gerarSemanaAtual = (): DiaSemana[] => {
-    const hoje = new Date();
-    // Para teste, podemos fixar a data, ex: const hoje = new Date(2025, 8, 5); // Uma sexta-feira
-    const diaDaSemanaHoje = hoje.getDay(); // Domingo = 0, Segunda = 1, ..., Sábado = 6
+export const gerarSemanaAtual = (dataReferencia: Date): DiaSemana[] => {
+    const hoje = dataReferencia; // Usa a data fornecida
+    const diaDaSemanaHoje = hoje.getDay(); // Domingo = 0, Segunda = 1, ...
     const inicioDaSemana = new Date(hoje);
     
     // Ajusta a data para o início da semana (Domingo)
     inicioDaSemana.setDate(hoje.getDate() - diaDaSemanaHoje);
+    inicioDaSemana.setHours(0, 0, 0, 0); // Zera a hora para evitar bugs de fuso horário
 
     const semana: DiaSemana[] = [];
     const diasAbreviados = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const diasCompletos = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+    const diasCompletos = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
     for (let i = 0; i < 7; i++) {
         const dataAtual = new Date(inicioDaSemana);
         dataAtual.setDate(inicioDaSemana.getDate() + i);
 
-        // Adiciona treinos mockados para certos dias da semana para exemplo
-        let exerciciosDoDia: ExercicioCompleto[] = [];
-        if (i === 1 || i === 4) { // Segunda e Quinta
-            exerciciosDoDia = [{ id: 'ex1', nome: 'Supino Reto', imagem: require('../../assets/images/almoco.jpeg'), series: '4', repeticoes: '10-12', carga: '20kg' }];
-        }
-        if (i === 3 || i === 5) { // Quarta e Sexta
-            exerciciosDoDia = [{ id: 'ex4', nome: 'Agachamento', imagem: require('../../assets/images/almoco.jpeg'), series: '4', repeticoes: '8-10', carga: '50kg' }];
-        }
-
         semana.push({
             id: i.toString(),
             diaAbreviado: diasAbreviados[i],
             diaCompleto: diasCompletos[i],
-            numero: dataAtual.getDate(), // Número real do dia no calendário
+            numero: dataAtual.getDate(),
             data: dataAtual,
-            status: 'pendente', // Status inicial
-            exercicios: exerciciosDoDia,
+            status: 'pendente',
+            exercicios: [], // Os exercícios agora vêm sempre do banco de dados
         });
     }
 

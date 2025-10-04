@@ -1,69 +1,86 @@
 // src/viewmodels/usePerfilViewModel.ts
-
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useCallback, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import AuthService from '../models/authModel';
+import { PerfilUsuario } from '../models/perfilModel';
 import { RootStackParamList } from '../navigation/types';
-import { getUserProfile } from '../services/saudeService';
+import { getUserProfile, updateUserProfile } from '../services/saudeService';
+import supabase from '../supabaseClient'; // Importe o Supabase para o logout
 
-// NOVO: Define a estrutura dos dados do usuário
-// O '?' torna a propriedade opcional, perfeito para dados que podem ser nulos
-interface UserProfile {
-  id: number;
-  nome?: string;
-  email?: string;
-  altura?: number;
-  peso?: number;
-  imc?: number;
-  // Adicione outras propriedades que você tiver na tabela 'usuarios'
-}
-
-type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export const usePerfilViewModel = () => {
-  // USA A NOVA INTERFACE AQUI
-  const [userData, setUserData] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const navigation = useNavigation<ProfileScreenNavigationProp>();
+  const navigation = useNavigation<NavigationProp>();
+  const [profile, setProfile] = useState<PerfilUsuario | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [calorieGoalInput, setCalorieGoalInput] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const fetchUserData = useCallback(async () => {
+  const fetchProfile = async () => {
     try {
-      setLoading(true);
-      const profile = await getUserProfile();
-      setUserData(profile);
+      setIsLoading(true);
+      const userProfile = await getUserProfile();
+      setProfile(userProfile);
+      setCalorieGoalInput(userProfile?.daily_calorie_goal?.toString() || '');
     } catch (error) {
-      console.error('Erro ao buscar dados do usuário:', error);
+      console.error('Erro ao buscar perfil do usuário:', error);
       Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, []);
 
-  // useFocusEffect é melhor que useEffect para abas, pois recarrega os dados toda vez que o usuário entra na tela
-  useFocusEffect(
-    useCallback(() => {
-      fetchUserData();
-    }, [fetchUserData])
-  );
+  const handleSaveChanges = async () => {
+    const newGoal = parseInt(calorieGoalInput, 10);
+    if (isNaN(newGoal) || newGoal <= 0) {
+      Alert.alert('Valor inválido', 'Por favor, insira um número válido.');
+      return;
+    }
 
-  const handleLogout = useCallback(async () => {
-    const response = await AuthService.signOut();
-    if (response.success) {
+    try {
+      setIsSaving(true);
+      // Usando o nome correto da coluna
+      await updateUserProfile({ daily_calorie_goal: newGoal });
+      
+      // Força a busca dos dados atualizados do servidor
+      await fetchProfile(); 
+      
+      Alert.alert('Sucesso!', 'Sua meta de calorias foi atualizada.');
+    } catch (error) {
+      console.error('Erro ao salvar a meta de calorias:', error);
+      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Função de logout que você já tinha
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert('Erro', 'Não foi possível deslogar.');
+    } else {
+      // Navega de volta para a tela de Welcome ou Login após o logout
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' }],
+        routes: [{ name: 'Welcome' }],
       });
-    } else {
-      Alert.alert('Erro', response.error || 'Não foi possível deslogar.');
     }
-  }, [navigation]);
+  };
 
   return {
-    userData,
-    loading,
+    // Renomeando 'profile' para 'userData' para manter a consistência com sua tela
+    userData: profile,
+    loading: isLoading,
+    calorieGoalInput,
+    setCalorieGoalInput,
+    isSaving,
+    handleSaveChanges,
     handleLogout,
-    refreshUserData: fetchUserData, // Função para pull-to-refresh, se precisar
   };
 };

@@ -4,34 +4,10 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { RootStackParamList } from '../navigation/RootNavigator';
+import { RootStackParamList } from "../navigation/types";
 import supabase from '../supabaseClient';
 
 
-
-
-/*export default function UserEmail() {
-  const [email, setEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setEmail(user?.email ?? null);
-    };
-
-    fetchUser();
-  }, []);
-
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      {email ? (
-        <Text>Usuário logado: {email}</Text>
-      ) : (
-        <Text>Nenhum usuário logado</Text>
-      )}
-    </View>
-  );
-}*/
 
 export default function HomeView() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();

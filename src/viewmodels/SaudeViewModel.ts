@@ -1,54 +1,79 @@
 // src/viewmodels/SaudeViewModel.ts
-import { useCallback, useState } from 'react';
-// CORREÇÃO AQUI: Importa a nova função
-import { getTodaySummary, getUserProfile } from '../services/saudeService';
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useCallback, useState } from "react";
+import { Alert } from "react-native";
+import { RootStackParamList } from "../navigation/types";
+import { getDailySummary, getUserProfile, saveHealthMetric } from "../services/saudeService";
+
+type SaudeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 export const useSaudeViewModel = () => {
-  const [overallHealth, setOverallHealth] = useState(0);
-  const [nutrition, setNutrition] = useState(0);
-  const [training, setTraining] = useState(0);
+  const navigation = useNavigation<SaudeScreenNavigationProp>();
+  
+  const [healthPercent, setHealthPercent] = useState(0);
+  const [nutritionScore, setNutritionScore] = useState(0);
+  const [trainingScore, setTrainingScore] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [userName, setUserName] = useState('');
 
-  const calculateHealthStatus = useCallback(async () => {
+  const handleCalculateHealth = useCallback(async () => {
     setIsLoading(true);
     try {
-      const userProfile = await getUserProfile();
-      if (!userProfile) {
-        setIsLoading(false); return;
+      const profile = await getUserProfile();
+      
+      if (!profile || !profile.daily_calorie_goal) {
+        Alert.alert("Meta não definida", "Por favor, defina sua meta diária de calorias no seu perfil para continuar.");
+        setIsLoading(false);
+        return;
       }
-      setUserName(userProfile.nome || 'Usuário');
+      const calorieGoal = profile.daily_calorie_goal;
 
-      // CORREÇÃO AQUI: Usa a nova função
-      const dailySummary = await getTodaySummary(userProfile.id);
+      const todayString = new Date().toISOString().split('T')[0];
+      
+      const summary = await getDailySummary(todayString);
 
-      const calorieGoal = userProfile.daily_calorie_goal || 2000;
-      const caloriesConsumed = dailySummary.calories_consumed || 0;
-      const nutritionPercentage = Math.min((caloriesConsumed / calorieGoal) * 100, 100);
-      setNutrition(Math.round(nutritionPercentage));
+      let calculatedNutritionScore = 0;
+      if (summary.caloriesConsumed <= calorieGoal) {
+        calculatedNutritionScore = Math.round((summary.caloriesConsumed / calorieGoal) * 100);
+      } else {
+        const overage = summary.caloriesConsumed - calorieGoal;
+        const penalty = Math.round((overage / calorieGoal) * 100);
+        calculatedNutritionScore = Math.max(0, 100 - penalty);
+      }
 
-      const trainingCompleted = dailySummary.training_completed || false;
-      const trainingPercentage = trainingCompleted ? 100 : 0;
-      setTraining(trainingPercentage);
+      const calculatedTrainingScore = summary.trainingCompleted ? 100 : 0;
+      
+      setNutritionScore(calculatedNutritionScore);
+      setTrainingScore(calculatedTrainingScore);
 
-      const overallPercentage = (nutritionPercentage * 0.6) + (trainingPercentage * 0.4);
-      setOverallHealth(Math.round(overallPercentage));
+      const finalPercentage = (calculatedNutritionScore * 0.5) + (calculatedTrainingScore * 0.5);
+      const roundedPercentage = Math.round(finalPercentage);
 
-    } catch (error) {
+      setHealthPercent(roundedPercentage);
+      await saveHealthMetric(roundedPercentage);
+      
+    } catch (error: any) {
       console.error("Erro ao calcular saúde:", error);
-      setOverallHealth(0); setNutrition(0); setTraining(0);
+      Alert.alert("Erro", "Não foi possível calcular seu status de saúde. Tente novamente.");
+      setHealthPercent(0);
+      setNutritionScore(0);
+      setTrainingScore(0);
     } finally {
       setIsLoading(false);
     }
   }, []);
   
-  return {
-    userName,
-    overallHealthPercentage: overallHealth,
-    nutritionPercentage: nutrition,
-    trainingPercentage: training,
+  const navigateToScreen = (screenName: keyof RootStackParamList) => {
+    // @ts-ignore
+    navigation.navigate(screenName);
+  };
+
+  return { 
+    navigateToScreen,
+    handleCalculateHealth,
+    healthPercent,
+    nutritionScore,
+    trainingScore,
     isLoading,
-    onOptimizePress: calculateHealthStatus,
-    fetchData: calculateHealthStatus,
   };
 };

@@ -1,3 +1,10 @@
+export interface Exercicio {
+  nome: string;
+  series: number;
+  repeticoes: number;
+  carga: number;
+}
+
 export interface AtividadeFisica {
   id: string;
   nome: string;

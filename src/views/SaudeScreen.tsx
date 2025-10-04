@@ -1,42 +1,54 @@
-import React from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Circle, Svg } from 'react-native-svg'; // Re-importado para os ícones e gráfico
-import { useSaudeViewModel } from '../viewmodels/SaudeViewModel'; // Certifique-se que o caminho está correto
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Circle, Svg } from 'react-native-svg';
+import { useSaudeViewModel } from '../viewmodels/SaudeViewModel';
 
+// Componente para a Barra de Progresso
+const ProgressBar = ({ label, value, color }: { label: string, value: number, color: string }) => {
+  return (
+    <View style={styles.progressBarContainer}>
+      <View style={styles.progressBarLabels}>
+        <Text style={styles.progressBarLabel}>{label}</Text>
+        <Text style={styles.progressBarValue}>{value}%</Text>
+      </View>
+      <View style={styles.progressBarBackground}>
+        <View style={[styles.progressBarFill, { width: `${value}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+};
 
 const SaudeScreen: React.FC = () => {
+  const navigation = useNavigation();
   const {
-    overallHealthPercentage,
-    nutritionPercentage,
-    trainingPercentage,
-    onOptimizePress,
+    healthPercent,
+    nutritionScore,
+    trainingScore,
+    handleCalculateHealth,
     isLoading,
   } = useSaudeViewModel();
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      handleCalculateHealth();
+    });
 
-  const circularProgressRadius = 80;
-  const circularProgressStrokeWidth = 15;
+    return unsubscribe;
+  }, [navigation, handleCalculateHealth]);
+
+  const circularProgressRadius = 100;
+  const circularProgressStrokeWidth = 20;
   const circularProgressCircumference = 2 * Math.PI * circularProgressRadius;
   const circularProgressStrokeDashoffset =
-    circularProgressCircumference - (circularProgressCircumference * overallHealthPercentage) / 100;
+    circularProgressCircumference - (circularProgressCircumference * healthPercent) / 100;
 
-  const mainColor = '#00695C';
+  const mainColor = '#005A4A';
   const lightGreenBackground = '#E0F2F1';
-  const inactiveTabColor = '#A0A0A0';
-  const activeTabColor = '#00695C';
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={[styles.safeArea, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={mainColor} />
-        <Text style={styles.loadingText}>Carregando dados...</Text>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <View style={styles.container}>
         {/* Card Principal - Saúde Geral */}
         <View style={styles.healthCard}>
           <Text style={styles.healthCardTitle}>Sua saúde:</Text>
@@ -67,39 +79,28 @@ const SaudeScreen: React.FC = () => {
               />
             </Svg>
             <Text style={[styles.circularProgressText, { color: mainColor }]}>
-              {overallHealthPercentage}%
+              {healthPercent.toFixed(1)}%
             </Text>
           </View>
         </View>
 
-        {/* Barra de Progresso - Alimentação */}
-        <View style={styles.progressItemContainer}>
-          <Text style={styles.progressItemLabel}>ALIMENTAÇÃO:</Text>
-          <View style={[styles.progressBarBackground, { backgroundColor: 'white', borderColor: mainColor, borderWidth: 2}]}>
-            <View style={[styles.progressBarFill, { width: `${nutritionPercentage}%`, backgroundColor: mainColor }]}/>
-            <Text style={[styles.progressItemPercentageText, {color: nutritionPercentage > 85 ? 'white' : mainColor, right: 15, fontWeight: 'bold'}]}>
-              {nutritionPercentage}%
-            </Text>
-          </View>
-        </View>
+        {/* Barras de Progresso Individuais */}
+        <ProgressBar label="ALIMENTAÇÃO:" value={nutritionScore} color={mainColor} />
+        <ProgressBar label="TREINO:" value={trainingScore} color={mainColor} />
 
-         <View style={styles.progressItemContainer}>
-          <Text style={styles.progressItemLabel}>TREINO:</Text>
-          <View style={[styles.progressBarBackground, { backgroundColor: 'white', borderColor: mainColor, borderWidth: 2}]}>
-            <View style={[styles.progressBarFill, { width: `${trainingPercentage}%`, backgroundColor: mainColor }]}/>
-            <Text style={[styles.progressItemPercentageText, {color: trainingPercentage > 85 ? 'white' : mainColor, right: 15, fontWeight: 'bold'}]}>
-              {trainingPercentage}%
-            </Text>
-          </View>
-        </View>
-
-        {/* Botão Otimizar */}
-        <TouchableOpacity style={styles.optimizeButton} onPress={onOptimizePress}>
-          <Text style={styles.optimizeButtonText}>Otimizar</Text>
+        {/* Botão de Otimizar */}
+        <TouchableOpacity 
+          style={styles.optimizeButton} 
+          onPress={handleCalculateHealth} 
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#424242" />
+          ) : (
+            <Text style={styles.optimizeButtonText}>Otimizar</Text>
+          )}
         </TouchableOpacity>
-      </ScrollView>
-
-     
+      </View>
     </SafeAreaView>
   );
 };
@@ -109,103 +110,87 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#333',
-  },
   container: {
     flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
-    paddingBottom: 40,
   },
   healthCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
     alignItems: 'center',
     width: '100%',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom: 30,
+    shadowRadius: 15,
+    elevation: 10,
+    marginBottom: 32,
   },
   healthCardTitle: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#212121',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   circularProgressContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
   circularProgressText: {
     position: 'absolute',
-    fontSize: 32,
-    fontWeight: '600',
+    fontSize: 40,
+    fontWeight: 'bold',
   },
-  progressItemContainer: {
+  progressBarContainer: {
     width: '100%',
-    marginBottom: 20,
-    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  progressItemLabel: {
-    fontSize: 14,
-    color: '#616161',
-    fontWeight: '600',
+  progressBarLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 8,
-    marginLeft: 10,
-    textTransform: 'uppercase',
+    paddingHorizontal: 12,
+  },
+  progressBarLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4B5563',
+  },
+  progressBarValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1F2937',
   },
   progressBarBackground: {
-    height: 50,
+    height: 28,
     width: '100%',
-    borderRadius: 25,
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
-    position: 'relative',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 25,
-  },
-  progressItemPercentageText: {
-    fontSize: 16,
-    fontWeight: '600',
-    position: 'absolute',
+    borderRadius: 20,
   },
   optimizeButton: {
     backgroundColor: '#E0E0E0',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 25,
-    marginTop: 25,
-    width: '90%',
+    paddingVertical: 16,
+    borderRadius: 28,
+    marginTop: 32,
+    width: '100%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    minHeight: 56,
+    justifyContent: 'center',
   },
   optimizeButtonText: {
     color: '#424242',
     fontSize: 18,
     fontWeight: 'bold',
   },
-
 });
 
 export default SaudeScreen;
