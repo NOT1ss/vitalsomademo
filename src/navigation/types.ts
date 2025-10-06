@@ -19,4 +19,7 @@ export type RootStackParamList = {
   CalendarioCompleto: { dias: DiaSemana[] };
   EditarTreino: { dia: DiaSemana; diaAtualizado?: DiaSemana };
   RegistrarTreino: { dia: DiaSemana; from?: 'SemanaTreino' | 'EditarTreino' };
+  ReceitasList: { categoria: string };
+  ReceitaDetail: { receitaId: number };
+  ReceitasFavoritas: undefined;
 };

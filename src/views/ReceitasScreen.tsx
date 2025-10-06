@@ -1,9 +1,9 @@
 // src/views/ReceitasScreen.tsx
 
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import MealCardHorizontal from '../componentes/MealCardHorizontal';
 import RecipeCategoryCard from '../componentes/RecipeCategoryCard';
 import { Alimento } from '../models/alimentoModel';
@@ -25,9 +25,12 @@ const AlimentoCardWhite: React.FC<{ food: Alimento; onAdd: () => void }> = ({ fo
 );
 
 export default function ReceitasScreen() {
+const navigation = useNavigation();
 const route = useRoute<ReceitasScreenRouteProp>();
 const [showPopup, setShowPopup] = useState(false);
 const [showMealDetails, setShowMealDetails] = useState<string | null>(null);
+const [foodToAddToMeal, setFoodToAddToMeal] = useState<Alimento | null>(null);
+const [mealSelectorVisible, setMealSelectorVisible] = useState(false);
 
 const {
   activeTab, handleTabChange, handleGoBack,
@@ -97,8 +100,8 @@ const renderCaloriasContent = () => {
           </View>
         </View>
         {meals.map((meal) => (
-          <TouchableOpacity key={meal.name} onLongPress={() => meal.items > 0 ? setShowMealDetails(meal.name) : null}>
-            <MealCardHorizontal mealName={meal.name} kcal={meal.kcal} items={meal.items} onAdd={() => handleMealCardPress(meal.name)} onClear={meal.items > 0 ? () => Alert.alert('Confirmar', `Deseja remover todos os alimentos de ${meal.name}?`, [{ text: 'Cancelar', style: 'cancel' }, { text: 'Confirmar', onPress: () => handleClearMeal(meal.name) }]) : undefined} />
+          <TouchableOpacity key={meal.name} onPress={() => meal.items > 0 ? setShowMealDetails(meal.name) : handleMealCardPress(meal.name)}>
+            <MealCardHorizontal mealName={meal.name} kcal={meal.kcal} items={meal.items} />
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -138,11 +141,14 @@ const renderAlimentosContent = () => (
       renderItem={({ item }) => (
         <AlimentoCardWhite
           food={item}
-          onAdd={() =>
-            selectedMeal
-              ? handleAddFoodToMeal(item, selectedMeal)
-              : handleAddFood(item)
-          }
+          onAdd={() => {
+            if (selectedMeal) {
+              handleAddFoodToMeal(item, selectedMeal);
+            } else {
+              setFoodToAddToMeal(item);
+              setMealSelectorVisible(true);
+            }
+          }}
         />
       )}
       showsVerticalScrollIndicator={false}
@@ -162,7 +168,7 @@ const renderReceitasContent = () => (
       data={categories}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
-        <RecipeCategoryCard category={item} onPress={handleCategoryPress} />
+        <RecipeCategoryCard category={item} onPress={() => navigation.navigate('ReceitasList', { categoria: item.queryName })} />
       )}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingTop: 20, paddingBottom: 80 }}
@@ -171,12 +177,12 @@ const renderReceitasContent = () => (
     <View style={styles.favoritesButtonContainer}>
       <TouchableOpacity
         style={styles.favoritesButton}
-        onPress={() => console.log('Favoritos pressionado')}
+        onPress={() => navigation.navigate('ReceitasFavoritas')}
       >
         <Ionicons
           name="heart"
           size={20}
-          color="#4CAF50"
+          color="#1e6a43"
           style={styles.favoritesHeart}
         />
         <Text style={styles.favoritesText}>Favoritas</Text>
@@ -207,28 +213,97 @@ return (
       {activeTab === 'alimentos' && renderAlimentosContent()}
       {activeTab === 'calorias' && renderCaloriasContent()}
 
+      {/* Modal de Seleção de Refeição */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={mealSelectorVisible}
+        onRequestClose={() => setMealSelectorVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.mealSelectorOverlay}
+          activeOpacity={1}
+          onPressOut={() => setMealSelectorVisible(false)}
+        >
+          <TouchableWithoutFeedback>
+            <View style={styles.mealSelectorContainer}>
+              <Text style={styles.mealSelectorTitle}>Adicionar em qual refeição?</Text>
+              {
+                ['Café da manhã', 'Almoço', 'Jantar', 'Lanches'].map(mealName => (
+                  <TouchableOpacity 
+                    key={mealName} 
+                    style={styles.mealSelectorButton}
+                    onPress={() => {
+                      if (foodToAddToMeal) {
+                        handleAddFoodToMeal(foodToAddToMeal, mealName);
+                        setMealSelectorVisible(false);
+                        setFoodToAddToMeal(null);
+                      }
+                    }}
+                  >
+                    <Text style={styles.mealSelectorButtonText}>{mealName}</Text>
+                  </TouchableOpacity>
+                ))
+              }
+              <TouchableOpacity 
+                style={styles.mealSelectorCancelButton}
+                onPress={() => setMealSelectorVisible(false)}
+              >
+                <Text style={styles.mealSelectorCancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
+      </Modal>
+
       <Modal animationType="fade" transparent={true} visible={showPopup} onRequestClose={() => setShowPopup(false)}>
         <View style={styles.popupOverlay}><View style={styles.popupContainer}><Text style={styles.popupText}>Selecione os alimentos</Text>{selectedMeal && (<Text style={styles.popupSubText}>para {selectedMeal}</Text>)}</View></View>
       </Modal>
 
       <Modal animationType="slide" transparent={true} visible={showMealDetails !== null} onRequestClose={() => setShowMealDetails(null)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{showMealDetails} - Alimentos Adicionados</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setShowMealDetails(null)}>
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPressOut={() => setShowMealDetails(null)}
+        >
+          <TouchableWithoutFeedback>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{showMealDetails} - Alimentos</Text>
+                <TouchableOpacity style={styles.closeButton} onPress={() => setShowMealDetails(null)}>
+                  <Ionicons name="close" size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={dailyMeals.find(m => m.name === showMealDetails)?.foods || []}
+                keyExtractor={(item) => `${item.db_id}`}
+                renderItem={renderFoodItem}
+                ListEmptyComponent={<Text style={styles.emptyModalText}>Nenhum alimento adicionado</Text>}
+                contentContainerStyle={styles.modalList}
+              />
+              <View style={styles.modalFooter}>
+                <TouchableOpacity style={styles.modalButton} onPress={() => { if (showMealDetails) { handleMealCardPress(showMealDetails); setShowMealDetails(null); } }}>
+                  <Ionicons name="add-circle-outline" size={22} color="#1e6a43" />
+                  <Text style={styles.modalButtonText}>Adicionar Alimento</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.modalButton, (dailyMeals.find(m => m.name === showMealDetails)?.foods.length || 0) === 0 && styles.disabledButton]}
+                  disabled={(dailyMeals.find(m => m.name === showMealDetails)?.foods.length || 0) === 0}
+                  onPress={() => {
+                    if (showMealDetails) {
+                      Alert.alert('Confirmar', `Deseja remover todos os alimentos de ${showMealDetails}?`, [
+                        { text: 'Cancelar', style: 'cancel' },
+                        { text: 'Confirmar', onPress: () => handleClearMeal(showMealDetails as string) },
+                      ]);
+                    }
+                  }}>
+                  <Ionicons name="trash-outline" size={22} color="#e74c3c" />
+                  <Text style={[styles.modalButtonText, {color: '#e74c3c'}]}>Limpar Tudo</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <FlatList
-              data={dailyMeals.find(m => m.name === showMealDetails)?.foods || []}
-              keyExtractor={(item) => `${item.db_id}`}
-              renderItem={renderFoodItem}
-              ListEmptyComponent={<Text style={styles.emptyModalText}>Nenhum alimento adicionado</Text>}
-              contentContainerStyle={styles.modalList}
-            />
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </TouchableOpacity>
       </Modal>
     </View>
   </SafeAreaView>
@@ -262,9 +337,9 @@ emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', margi
 emptyText: { color: '#333', textAlign: 'center', fontSize: 18, fontWeight: 'bold' },
 emptySubText: { color: '#666', textAlign: 'center', fontSize: 16, marginTop: 5 },
 favoritesButtonContainer: { position: 'absolute', bottom: 20, left: 20, right: 20, alignItems: 'flex-end' },
-favoritesButton: { backgroundColor: '#1e6a43', borderRadius: 25, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, },
-favoritesHeart: { marginRight: 8 },
-favoritesText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+favoritesButton: { backgroundColor: '#fff', borderRadius: 25, paddingVertical: 12, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', elevation: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, },
+favoritesHeart: { marginRight: 8, color: '#1e6a43' },
+favoritesText: { color: '#1e6a43', fontSize: 16, fontWeight: 'bold' },
 scrollContent: { paddingBottom: 20 },
 calculationSection: { backgroundColor: '#f0f0f0', borderRadius: 8, padding: 15, marginBottom: 15, marginTop: 10, },
 calculationHeader: { backgroundColor: '#a0d1c3', borderRadius: 5, paddingVertical: 5, paddingHorizontal: 10, alignSelf: 'flex-start', marginBottom: 15, },
@@ -279,8 +354,8 @@ popupOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 
 popupContainer: { backgroundColor: '#fff', borderRadius: 10, padding: 20, alignItems: 'center', minWidth: 200 },
 popupText: { fontSize: 16, fontWeight: 'bold', color: '#333', textAlign: 'center' },
 popupSubText: { fontSize: 14, color: '#666', marginTop: 5, textAlign: 'center' },
-modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end', },
-modalContainer: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%', paddingTop: 20, },
+modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+modalContainer: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 20, paddingBottom: 50, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 5 },
 modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: '#eee', },
 modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1 },
 closeButton: { padding: 5 },
@@ -291,4 +366,16 @@ foodName: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 2 },
 foodKcal: { fontSize: 14, color: '#666' },
 removeButton: { padding: 5 },
 emptyModalText: { textAlign: 'center', color: '#666', fontSize: 16, marginTop: 20, },
+modalFooter: { flexDirection: 'row', justifyContent: 'space-around', padding: 15, borderTopWidth: 1, borderTopColor: '#eee', backgroundColor: '#fff' },
+modalButton: { flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 8 },
+modalButtonText: { marginLeft: 8, fontSize: 16, fontWeight: 'bold', color: '#1e6a43' },
+disabledButton: { opacity: 0.5 },
+// Meal Selector Modal Styles
+mealSelectorOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.6)' },
+mealSelectorContainer: { backgroundColor: '#fff', borderRadius: 15, padding: 20, width: '85%', elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
+mealSelectorTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', textAlign: 'center', marginBottom: 20 },
+mealSelectorButton: { backgroundColor: '#f0f0f0', borderRadius: 8, paddingVertical: 15, marginBottom: 10 },
+mealSelectorButtonText: { fontSize: 16, color: '#1e6a43', textAlign: 'center', fontWeight: '500' },
+mealSelectorCancelButton: { marginTop: 10, paddingVertical: 10 },
+mealSelectorCancelButtonText: { fontSize: 16, color: '#e74c3c', textAlign: 'center', fontWeight: 'bold' },
 });

@@ -6,46 +6,27 @@ interface MealCardHorizontalProps {
   mealName: string;
   kcal: number;
   items: number;
-  onAdd: () => void;
-  onClear?: () => void; // Nova prop para limpar refeição
 }
 
 const MealCardHorizontal: React.FC<MealCardHorizontalProps> = ({
   mealName,
   kcal,
   items,
-  onAdd,
-  onClear,
 }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.mealName}>{mealName}</Text>
       <View style={styles.contentRow}>
-        <View style={styles.leftSection}>
+        <View style={styles.section}>
           <Text style={styles.label}>Calorias</Text>
           <Text style={styles.value}>{kcal}</Text>
         </View>
-        
-        <View style={styles.buttonSection}>
-          <TouchableOpacity style={styles.addButton} onPress={onAdd}>
-            <Ionicons name="add" size={24} color="#1e6a43" />
-            <Text style={styles.addText}>Add</Text>
-          </TouchableOpacity>
-          
-          {/* Botão de limpar só aparece se houver itens */}
-          {items > 0 && onClear && (
-            <TouchableOpacity style={styles.clearButton} onPress={onClear}>
-              <Ionicons name="trash-outline" size={20} color="#e74c3c" />
-              <Text style={styles.clearText}>Limpar</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        
-        <View style={styles.rightSection}>
+        <View style={styles.section}>
           <Text style={styles.label}>Itens</Text>
           <Text style={styles.value}>{items}</Text>
         </View>
       </View>
+      <Text style={styles.detailsText}>Ver detalhes</Text>
     </View>
   );
 };
@@ -113,6 +94,13 @@ const styles = StyleSheet.create({
     color: '#e74c3c',
     fontWeight: 'bold',
     marginTop: 2,
+  },
+  detailsText: {
+    fontSize: 12,
+    color: '#1e6a43',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
 

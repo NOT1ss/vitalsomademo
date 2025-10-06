@@ -339,7 +339,74 @@ export const updatePersonalRecord = async (exerciseName: string, newRecordValue:
     });
 
   if (error) {
-    console.error("Erro ao fazer upsert do recorde:", error.message);
     throw error;
   }
+};
+
+// --- Funções de Receitas Favoritas ---
+
+export const getFavoriteRecipeIds = async (userId: number): Promise<Set<number>> => {
+  const { data, error } = await supabase
+    .from('receita_favorita')
+    .select('receita_id')
+    .eq('usuario_id', userId);
+
+  if (error) {
+    console.error("Erro ao buscar IDs de receitas favoritas:", error.message);
+    return new Set();
+  }
+
+  return new Set(data.map(r => r.receita_id));
+};
+
+export const addFavorite = async (userId: number, receitaId: number) => {
+  const { error } = await supabase
+    .from('receita_favorita')
+    .insert({ usuario_id: userId, receita_id: receitaId });
+
+  if (error) {
+    console.error("Erro ao adicionar favorito:", error.message);
+    throw error;
+  }
+};
+
+export const removeFavorite = async (userId: number, receitaId: number) => {
+  const { error } = await supabase
+    .from('receita_favorita')
+    .delete()
+    .match({ usuario_id: userId, receita_id: receitaId });
+
+  if (error) {
+    throw error;
+  }
+};
+
+export const getFavoriteRecipes = async (userId: number) => {
+  const { data: favoriteData, error: favoriteError } = await supabase
+    .from('receita_favorita')
+    .select('receita_id')
+    .eq('usuario_id', userId);
+
+  if (favoriteError) {
+    console.error("Erro ao buscar IDs de receitas favoritas:", favoriteError.message);
+    return [];
+  }
+
+  const recipeIds = favoriteData.map(f => f.receita_id);
+
+  if (recipeIds.length === 0) {
+    return [];
+  }
+
+  const { data: recipesData, error: recipesError } = await supabase
+    .from('receita')
+    .select('*')
+    .in('id', recipeIds);
+
+  if (recipesError) {
+    console.error("Erro ao buscar detalhes das receitas favoritas:", recipesError.message);
+    return [];
+  }
+
+  return recipesData;
 };
