@@ -25,7 +25,6 @@ export default function MainTabNavigator() {
           height: 100,
           paddingBottom: 15,
           paddingTop: 10,
-          // position: 'absolute', // <<<<<<<<<<<<<<<<<<<< REMOVA ESTA LINHA
           borderTopWidth: 0,
           elevation: 10,
           shadowColor: '#000',
@@ -64,12 +63,11 @@ export default function MainTabNavigator() {
       <Tab.Screen name="Home" component={SaudeScreen} />
       <Tab.Screen name="Diário" component={DiaryScreen} />
       
-      {/* APLIQUE A OPÇÃO ESPECIAL APENAS NA TELA DE CHAT */}
       <Tab.Screen 
         name="Chat Hiro" 
         component={ChatBotHeroScreen} 
         options={{
-          tabBarHideOnKeyboard: true, // <<<<<<<<<<<<<<<<<<<< ADICIONE ISTO
+          tabBarHideOnKeyboard: true,
         }}
       />
       
