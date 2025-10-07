@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   SafeAreaView,
   StyleSheet,
@@ -18,19 +19,17 @@ export default function AlimentosScreen() {
     searchText,
     setSearchText,
     handleAddFood,
-    // --- INÍCIO DA ALTERAÇÃO 1 ---
     handleGoBack,
     handleFavoritesPress,
-    // --- FIM DA ALTERAÇÃO 1 ---
+    loading,
+    error,
   } = useAlimentosViewModel();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Cabeçalho */}
         <Text style={styles.headerTitle}>Alimentos</Text>
 
-        {/* Barra de Busca e Filtro */}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#a0d1c3" style={styles.searchIcon} />
           <TextInput
@@ -45,21 +44,25 @@ export default function AlimentosScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Lista de Alimentos */}
-        <FlatList
-          data={displayedFoods}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <AlimentoCard food={item} onAdd={handleAddFood} />
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: 20, paddingBottom: 20 }}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>Nenhum alimento encontrado.</Text>
-          }
-        />
+        {loading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 50 }} />
+        ) : error ? (
+          <Text style={styles.emptyText}>{error}</Text>
+        ) : (
+          <FlatList
+            data={displayedFoods}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <AlimentoCard food={item} onAdd={handleAddFood} />
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingTop: 20, paddingBottom: 20 }}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>Nenhum alimento encontrado.</Text>
+            }
+          />
+        )}
 
-        {/* --- INÍCIO DA ALTERAÇÃO 2: ADICIONAR O RODAPÉ --- */}
         <View style={styles.footer}>
           <TouchableOpacity onPress={handleGoBack} style={styles.footerButton}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -69,7 +72,6 @@ export default function AlimentosScreen() {
             <Ionicons name="heart-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
-        {/* --- FIM DA ALTERAÇÃO 2 --- */}
       </View>
     </SafeAreaView>
   );
@@ -114,7 +116,6 @@ const styles = StyleSheet.create({
     marginTop: 50,
     fontSize: 16,
   },
-  // --- INÍCIO DA ALTERAÇÃO 3: ADICIONAR ESTILOS DO RODAPÉ ---
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -130,5 +131,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginRight: 8,
   },
-  // --- FIM DA ALTERAÇÃO 3 ---
 });

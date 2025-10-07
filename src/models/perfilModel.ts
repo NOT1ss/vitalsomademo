@@ -6,4 +6,5 @@ export interface PerfilUsuario {
   altura?: number;
   peso?: number;
   imc?: number;
+  avatar_url?: string;
 }

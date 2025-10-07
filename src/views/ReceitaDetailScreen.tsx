@@ -31,8 +31,8 @@ const ReceitaDetailScreen = () => {
   }
 
   // Funções para processar os textos de ingredientes e preparo
-  const ingredientesList = receita.ingredientes.split('\n').filter(item => item.trim() !== '');
-  const preparoList = receita.preparo.split('\n').filter(item => item.trim() !== '');
+  const ingredientesList = receita.ingredientes_pt.split('\n').filter(item => item.trim() !== '');
+  const preparoList = receita.preparo_pt.split('\n').filter(item => item.trim() !== '');
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -47,7 +47,7 @@ const ReceitaDetailScreen = () => {
         {/* Imagem e Título */}
         <View style={styles.titleContainer}>
           <Image source={{ uri: receita.imagem_url }} style={styles.image} />
-          <Text style={styles.title}>{receita.titulo}</Text>
+          <Text style={styles.title}>{receita.titulo_pt}</Text>
         </View>
 
         {/* Descrição */}

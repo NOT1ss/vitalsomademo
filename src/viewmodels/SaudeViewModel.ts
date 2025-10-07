@@ -15,6 +15,7 @@ export const useSaudeViewModel = () => {
   const [nutritionScore, setNutritionScore] = useState(0);
   const [trainingScore, setTrainingScore] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [remainingKcal, setRemainingKcal] = useState(0);
 
   const handleCalculateHealth = useCallback(async () => {
     setIsLoading(true);
@@ -31,6 +32,8 @@ export const useSaudeViewModel = () => {
       const todayString = new Date().toISOString().split('T')[0];
       
       const summary = await getDailySummary(todayString);
+
+      setRemainingKcal(calorieGoal - summary.caloriesConsumed);
 
       let calculatedNutritionScore = 0;
       if (summary.caloriesConsumed <= calorieGoal) {
@@ -75,5 +78,6 @@ export const useSaudeViewModel = () => {
     nutritionScore,
     trainingScore,
     isLoading,
+    remainingKcal,
   };
 };

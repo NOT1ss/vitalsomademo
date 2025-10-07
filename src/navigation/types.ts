@@ -22,4 +22,7 @@ export type RootStackParamList = {
   ReceitasList: { categoria: string };
   ReceitaDetail: { receitaId: number };
   ReceitasFavoritas: undefined;
+  ExerciciosList: undefined;
+  ExercicioDetail: { exercicioId: number };
+  PlanoSemana: undefined;
 };

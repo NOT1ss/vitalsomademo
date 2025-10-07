@@ -13,6 +13,9 @@ export interface Receita {
   ingredientes: string;
   preparo: string;
   imagem_url: string;
+  titulo_pt: string;
+  ingredientes_pt: string;
+  preparo_pt: string;
 }
 
 interface UserProfile {
@@ -46,7 +49,7 @@ export const useReceitasSupabaseViewModel = () => {
     try {
       const { data, error } = await supabase
         .from('receita')
-        .select('*')
+        .select('id, titulo, categoria, ingredientes, preparo, imagem_url, titulo_pt, ingredientes_pt, preparo_pt')
         .eq('categoria', categoria);
 
       if (error) {
@@ -70,7 +73,7 @@ export const useReceitasSupabaseViewModel = () => {
     try {
       const { data, error } = await supabase
         .from('receita')
-        .select('*')
+        .select('id, titulo, categoria, ingredientes, preparo, imagem_url, titulo_pt, ingredientes_pt, preparo_pt')
         .eq('id', id)
         .single();
 

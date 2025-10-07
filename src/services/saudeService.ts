@@ -236,7 +236,7 @@ export const clearConsumedFoodsByMeal = async (numericUserId: number, mealName: 
  * Atualiza os dados do perfil do usuário na tabela 'usuarios'.
  * @param updates Um objeto com os campos a serem atualizados.
  */
-export const updateUserProfile = async (updates: { daily_calorie_goal?: number; /* etc */ }) => {
+export const updateUserProfile = async (updates: { [key: string]: any }) => {
   const profile = await getUserProfile();
   if (!profile) throw new Error("Perfil não encontrado");
 
@@ -251,6 +251,40 @@ export const updateUserProfile = async (updates: { daily_calorie_goal?: number; 
   }
 
   
+};
+
+import { Buffer } from 'buffer';
+
+export const uploadAvatar = async (base64Uri: string) => {
+  try {
+    const profile = await getUserProfile();
+    if (!profile) throw new Error("Perfil não encontrado");
+
+    // Extrai o conteúdo base64 do data URI
+    const base64Data = base64Uri.split('base64,')[1];
+    const decodedData = Buffer.from(base64Data, 'base64');
+
+    const fileExt = 'png'; // Assumindo png, pode ser melhorado para detectar o tipo
+    const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, decodedData, { contentType: `image/${fileExt}` });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  } catch (error) {
+    console.error('Erro no upload de avatar:', error);
+    throw error;
+  }
 };
 
 
@@ -305,6 +339,21 @@ export const getPersonalRecords = async (): Promise<Map<string, string>> => {
     recordsMap.set(record.tipo, record.valor);
   });
   return recordsMap;
+};
+
+export const deletePersonalRecord = async (exerciseName: string) => {
+  const profile = await getUserProfile();
+  if (!profile) throw new Error("Perfil não encontrado");
+
+  const { error } = await supabase
+    .from('records')
+    .delete()
+    .match({ usuario_id: profile.id, tipo: exerciseName });
+
+  if (error) {
+    console.error("Erro ao deletar recorde:", error.message);
+    throw error;
+  }
 };
 
 /**
@@ -400,7 +449,7 @@ export const getFavoriteRecipes = async (userId: number) => {
 
   const { data: recipesData, error: recipesError } = await supabase
     .from('receita')
-    .select('*')
+    .select('id, titulo, categoria, ingredientes, preparo, imagem_url, titulo_pt, ingredientes_pt, preparo_pt')
     .in('id', recipeIds);
 
   if (recipesError) {
@@ -409,4 +458,18 @@ export const getFavoriteRecipes = async (userId: number) => {
   }
 
   return recipesData;
+};
+
+export const getDicasSaude = async (): Promise<string[]> => {
+  const { data, error } = await supabase
+    .from('dicas_saude')
+    .select('texto');
+
+  if (error) {
+    console.error("Erro ao buscar dicas de saúde:", error.message);
+    return []; // Retorna um array vazio em caso de erro
+  }
+
+  // Extrai apenas o texto de cada dica
+  return data.map(dica => dica.texto);
 };

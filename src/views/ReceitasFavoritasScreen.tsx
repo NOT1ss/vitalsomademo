@@ -10,7 +10,7 @@ const RecipeCard = ({ item, onPress, isFavorite, onToggleFavorite }: { item: Rec
   <TouchableOpacity style={styles.card} onPress={onPress}>
     <Image source={{ uri: item.imagem_url }} style={styles.cardImage} />
     <View style={styles.cardContent}>
-      <Text style={styles.cardTitle}>{item.titulo}</Text>
+      <Text style={styles.cardTitle}>{item.titulo_pt}</Text>
     </View>
     <TouchableOpacity style={styles.favoriteButton} onPress={onToggleFavorite}>
       <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={24} color={isFavorite ? '#1e6a43' : '#888'} />

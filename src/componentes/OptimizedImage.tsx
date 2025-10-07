@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image'; // Import from expo-image
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
-    Image,
     ImageProps,
     ImageSourcePropType,
     StyleSheet,
@@ -30,7 +30,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   fallbackIconSize = 24,
   ...props
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const handleLoadStart = () => {
@@ -52,12 +52,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   return (
     <View style={[styles.container, ...imageStyle]}>
       {!hasError && (
-        <Image
+        <Image // Use Image from expo-image
           source={source}
           style={[styles.image, ...imageStyle]}
           onLoadStart={handleLoadStart}
-          onLoadEnd={handleLoadEnd}
+          onLoad={handleLoadEnd}
           onError={handleError}
+          transition={300} // Adiciona uma transição suave
           {...props}
         />
       )}
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(240, 240, 240, 0.8)',
+    backgroundColor: 'rgba(240, 240, 240, 0.1)', // Fundo mais sutil
   },
   fallbackContainer: {
     backgroundColor: '#f5f5f5',
@@ -107,4 +108,3 @@ const styles = StyleSheet.create({
 });
 
 export default OptimizedImage;
-

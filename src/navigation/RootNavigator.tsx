@@ -24,6 +24,9 @@ import MainTabNavigator from './MainTabNavigator';
 import ReceitaDetailScreen from '../views/ReceitaDetailScreen';
 import ReceitasFavoritasScreen from '../views/ReceitasFavoritasScreen';
 import ReceitasListScreen from '../views/ReceitasListScreen';
+import ExerciciosListScreen from '../views/ExerciciosListScreen';
+import ExercicioDetailScreen from '../views/ExercicioDetailScreen';
+import PlanoSemanaScreen from '../views/PlanoSemanaScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -47,6 +50,9 @@ export default function RootNavigator() {
       <Stack.Screen name="ReceitasList" component={ReceitasListScreen} />
       <Stack.Screen name="ReceitaDetail" component={ReceitaDetailScreen} />
       <Stack.Screen name="ReceitasFavoritas" component={ReceitasFavoritasScreen} />
+      <Stack.Screen name="ExerciciosList" component={ExerciciosListScreen} />
+      <Stack.Screen name="ExercicioDetail" component={ExercicioDetailScreen} />
+      <Stack.Screen name="PlanoSemana" component={PlanoSemanaScreen} />
       <Stack.Screen name="MainApp" component={MainTabNavigator} />
     </Stack.Navigator>
   );

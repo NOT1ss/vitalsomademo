@@ -1,11 +1,12 @@
 // src/viewmodels/useReceitasViewModel.ts
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alimento, tacoFoods } from '../models/alimentoModel';
+import { Alimento } from '../models/alimentoModel';
 import { mockCategories, RecipeCategory } from '../models/receitaModel';
 import { RootStackParamList } from '../navigation/types';
 import { addConsumedFood, clearConsumedFoodsByMeal, getTodaysConsumedFoods, getUserProfile, removeConsumedFood, updateDailySummary } from '../services/saudeService';
+import supabase from '../supabaseClient';
 
 export type FoodWithDbId = Alimento & { db_id: number };
 interface Meal { id: string; name: 'Café da manhã' | 'Almoço' | 'Jantar' | 'Lanches'; foods: FoodWithDbId[]; }
@@ -15,12 +16,14 @@ interface UserProfile { id: number; daily_calorie_goal?: number; }
 
 export const useReceitasViewModel = () => {
   const navigation = useNavigation<NavigationProp>();
+  const route = useRoute<RouteProp<RootStackParamList, 'Receitas'>>();
   const [categories] = useState<RecipeCategory[]>(mockCategories);
   const [searchText, setSearchText] = useState('');
   const [activeTab, setActiveTab] = useState<ActiveTab>('calorias');
   const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [allFoods, setAllFoods] = useState<Alimento[]>([]);
   
   const [dailyMeals, setDailyMeals] = useState<Meal[]>([
     { id: '1', name: 'Café da manhã', foods: [] },
@@ -33,40 +36,74 @@ export const useReceitasViewModel = () => {
     useCallback(() => {
       const loadData = async () => {
         setIsLoading(true);
-        const profile = await getUserProfile();
-        if (profile) {
-          setUserProfile(profile);
-          const consumedFoods = await getTodaysConsumedFoods(profile.id);
-          const meals: Meal[] = [
-            { id: '1', name: 'Café da manhã', foods: [] },
-            { id: '2', name: 'Almoço', foods: [] },
-            { id: '3', name: 'Jantar', foods: [] },
-            { id: '4', name: 'Lanches', foods: [] },
-          ];
+        try {
+          const { data: alimentosData, error: alimentosError } = await supabase
+            .from('alimentos')
+            .select('id, nome_alimento, kcal, proteina');
 
-          consumedFoods.forEach(foodFromDb => {
-            const mealNameMap: { [key: string]: Meal['name'] } = {
-              'Café da Manhã': 'Café da manhã',
-              'Café da manhã': 'Café da manhã',
-              'Almoço': 'Almoço',
-              'Jantar': 'Jantar',
-              'Lanche': 'Lanches',
-             
-            };
-            const targetMealName = mealNameMap[foodFromDb.meal_name];
-            const meal = meals.find(m => m.name === targetMealName);
-            const fullFoodData = tacoFoods.find(f => f.id === foodFromDb.food_id);
-            if (meal && fullFoodData) {
-              meal.foods.push({ ...fullFoodData, db_id: foodFromDb.id });
-            }
-          });
-          setDailyMeals(meals);
+          if (alimentosError) throw alimentosError;
+
+          const foods = alimentosData.map((item: any) => ({
+            id: item.id.toString(),
+            name: item.nome_alimento || '',
+            kcal: parseFloat(item.kcal) || 0,
+            protein: parseFloat(item.proteina) || 0,
+            base_g: 100,
+            carbs: 0,
+            fat: 0,
+          }));
+          setAllFoods(foods);
+
+          const profile = await getUserProfile();
+          if (profile) {
+            setUserProfile(profile);
+            const consumedFoods = await getTodaysConsumedFoods(profile.id);
+            const meals: Meal[] = [
+              { id: '1', name: 'Café da manhã', foods: [] },
+              { id: '2', name: 'Almoço', foods: [] },
+              { id: '3', name: 'Jantar', foods: [] },
+              { id: '4', name: 'Lanches', foods: [] },
+            ];
+
+            consumedFoods.forEach(foodFromDb => {
+              const mealNameMap: { [key: string]: Meal['name'] } = {
+                'Café da Manhã': 'Café da manhã',
+                'Café da manhã': 'Café da manhã',
+                'Almoço': 'Almoço',
+                'Jantar': 'Jantar',
+                'Lanche': 'Lanches',
+              };
+              const targetMealName = mealNameMap[foodFromDb.meal_name];
+              const meal = meals.find(m => m.name === targetMealName);
+              const fullFoodData = foods.find(f => f.id === foodFromDb.food_id);
+              if (meal && fullFoodData) {
+                meal.foods.push({ ...fullFoodData, db_id: foodFromDb.id });
+              }
+            });
+            setDailyMeals(meals);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
       };
       loadData();
     }, [])
   );
+
+  useEffect(() => {
+    if (route.params?.initialTab) {
+      setActiveTab(route.params.initialTab);
+    }
+  }, [route.params?.initialTab]);
+
+  const displayedFoods = useMemo(() => {
+    if (!searchText) {
+      return allFoods.slice(0, 50);
+    }
+    return allFoods.filter(f => f.name.toLowerCase().includes(searchText.toLowerCase())).slice(0, 50);
+  }, [allFoods, searchText]);
 
   const totalConsumedKcal = useMemo(() => {
     return dailyMeals.reduce((total, meal) => total + meal.foods.reduce((sum, food) => sum + food.kcal, 0), 0);
@@ -95,11 +132,9 @@ export const useReceitasViewModel = () => {
 
   const handleClearMeal = async (mealName: string) => {
     if (!userProfile) return;
-    // Traduz o nome da UI ("Lanches") para o nome do DB ("Lanche")
     const dbMealName = mealName === 'Lanches' ? 'Lanche' : mealName;
     try {
       await clearConsumedFoodsByMeal(userProfile.id, dbMealName);
-      // Atualiza o estado local usando o nome da UI
       setDailyMeals(current => current.map(m => (m.name === mealName ? { ...m, foods: [] } : m)));
     } catch (error) {
       console.error("Falha ao limpar refeição:", error);
@@ -130,7 +165,7 @@ export const useReceitasViewModel = () => {
   return {
     activeTab, handleTabChange, handleGoBack: navigation.goBack,
     categories, handleCategoryPress: () => {}, searchText, setSearchText, handleClearSearch: () => setSearchText(''),
-    displayedFoods: tacoFoods.filter(f => f.name.toLowerCase().includes(searchText.toLowerCase())).slice(0, 50),
+    displayedFoods,
     calorieGoal, remainingKcal, totalConsumedKcal, caloriesByMeal, handleMealCardPress, dailyMeals,
     selectedMeal, setSelectedMeal, handleAddFoodToMeal, handleRemoveFoodFromMeal, handleClearMeal, handleAddFood, isLoading
   };
