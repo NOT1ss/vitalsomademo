@@ -46,7 +46,6 @@ const AuthService = {
     }
   },
 
-  // --- FUNÇÃO NOVA ADICIONADA AQUI ---
   async signOut(): Promise<{ success: boolean; error?: string }> {
     try {
       const { error } = await supabase.auth.signOut();
