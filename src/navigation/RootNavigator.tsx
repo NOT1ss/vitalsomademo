@@ -1,7 +1,6 @@
 // src/navigation/RootNavigator.tsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-// CORREÇÃO: Importa os tipos do novo arquivo
 import { RootStackParamList } from './types';
 
 // Telas
