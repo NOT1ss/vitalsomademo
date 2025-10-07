@@ -155,8 +155,7 @@ export const updateExerciseLog = async (exerciseLogId: number, updates: { carga?
 export const calculateTrainingStreak = async (): Promise<number> => {
   const profile = await getUserProfile();
   if (!profile) return 0;
-
-  // Fetch ALL completed training dates, sorted descending
+  
   const { data, error } = await supabase
     .from('daily_summary')
     .select('date')
@@ -179,26 +178,22 @@ export const calculateTrainingStreak = async (): Promise<number> => {
 
   const mostRecentTraining = trainingDates[0];
 
-  // If the most recent training day wasn't today or yesterday, the streak is 0
   if (mostRecentTraining.getTime() !== today.getTime() && mostRecentTraining.getTime() !== yesterday.getTime()) {
     return 0;
   }
 
   let streak = 1;
-  // Start from the second date in the list
   for (let i = 1; i < trainingDates.length; i++) {
     const lastDate = trainingDates[i - 1];
     const currentDate = trainingDates[i];
-
-    // Calculate the expected previous day
+    
     const expectedPreviousDate = new Date(lastDate);
     expectedPreviousDate.setDate(expectedPreviousDate.getDate() - 1);
 
-    // If the current date in the list matches the expected previous day, continue streak
     if (currentDate.getTime() === expectedPreviousDate.getTime()) {
       streak++;
     } else {
-      // If it's not consecutive, the streak is broken
+
       break;
     }
   }
