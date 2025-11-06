@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useWelcomeViewModel } from '../viewmodels/useWelcomeViewModel';
 
 export default function WelcomeView() {
@@ -22,22 +23,27 @@ export default function WelcomeView() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../../assets/images/2.png')} // Usando a logo colorida
-        style={styles.logo}
-        resizeMode="contain"
-      />
-      <ActivityIndicator size="large" color="#00695C" style={styles.spinner} />
-      <Text style={styles.loadingText}>Carregando...</Text>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Image
+          source={require('../../assets/images/splash-icon.png')} // Usando a logo colorida
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <ActivityIndicator size="large" color="#00695C" style={styles.spinner} />
+        <Text style={styles.loadingText}>Carregando...</Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  container: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },

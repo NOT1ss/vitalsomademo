@@ -24,7 +24,7 @@ const DiaItem = ({ dia, isSelected, onPress }: { dia: DiaSemana, isSelected: boo
   <TouchableOpacity style={styles.diaContainer} onPress={onPress}>
     <Text style={[styles.diaTextoAbreviado, isSelected && styles.diaSelecionadoTexto]}>{dia.diaAbreviado}</Text>
     <View style={[styles.circuloDia, isSelected && styles.circuloDiaSelecionado, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}>
-      {dia.status === 'concluido' && <Ionicons name="checkmark-sharp" size={circleSize * 0.6} color="#16A34A" />}
+      {dia.status === 'concluido' && <Ionicons name="checkmark-sharp" size={circleSize * 0.6} color="#005A4A" />}
       {dia.status === 'nao_realizado' && <Ionicons name="close-sharp" size={circleSize * 0.6} color="#DC2626" />}
       {dia.status === 'pendente' && <Text style={[styles.diaNumero, isSelected && styles.diaSelecionadoTexto, { fontSize: circleSize * 0.4 }]}>{dia.numero}</Text>}
     </View>
@@ -50,7 +50,7 @@ export default function SemanaTreinoScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1e6a43" />
+          <ActivityIndicator size="large" color="#005A4A" />
         </View>
       </SafeAreaView>
     );
@@ -155,18 +155,18 @@ const styles = StyleSheet.create({
     diaContainer: { alignItems: 'center', flex: 1 },
     diaTextoAbreviado: { color: '#888', marginBottom: 5, fontWeight: '500' },
     circuloDia: { borderWidth: 1.5, borderColor: '#ccc', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-    circuloDiaSelecionado: { borderColor: '#16A34A', borderWidth: 2 },
+    circuloDiaSelecionado: { borderColor: '#005A4A', borderWidth: 2 },
     diaNumero: { fontWeight: 'bold', color: '#555' },
-    diaSelecionadoTexto: { color: '#16A34A', fontWeight: 'bold' },
+    diaSelecionadoTexto: { color: '#005A4A', fontWeight: 'bold' },
     verMais: { alignSelf: 'flex-end', color: '#555', fontSize: 12, marginBottom: 20, textDecorationLine: 'underline' },
     diaCompletoTitulo: { fontSize: 20, fontWeight: 'bold', alignSelf: 'flex-start', marginBottom: 0 },
     exercicioCard: { backgroundColor: '#fff', borderRadius: 12, padding: 10, marginRight: 15, alignItems: 'center', width: 140, height: 180, elevation: 2, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: {width: 0, height: 2} },
     exercicioNome: { fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
     exercicioImagem: { width: 100, height: 100 },
     botoesAcaoContainer: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginVertical: 20 },
-    botaoAcao: { borderWidth: 1.5, borderColor: '#16A34A', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 20 },
-    botaoAcaoTexto: { color: '#16A34A', fontWeight: 'bold' },
-    botaoConcluido: { backgroundColor: '#16A34A' },
+    botaoAcao: { borderWidth: 1.5, borderColor: '#005A4A', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 20 },
+    botaoAcaoTexto: { color: '#005A4A', fontWeight: 'bold' },
+    botaoConcluido: { backgroundColor: '#005A4A' },
     recordsContainer: {
       width: '100%',
       marginTop: 10,

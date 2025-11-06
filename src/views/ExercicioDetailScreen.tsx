@@ -48,7 +48,7 @@ const ExercicioDetailScreen = () => {
   if (isLoading || !exercicio) {
     return (
       <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#1e6a43" />
+        <ActivityIndicator size="large" color="#005A4A" />
       </SafeAreaView>
     );
   }
@@ -58,7 +58,7 @@ const ExercicioDetailScreen = () => {
       <ScrollView>
         <View style={styles.headerContainer}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                <Ionicons name="arrow-back" size={24} color="#1e6a43" />
+                <Ionicons name="arrow-back" size={24} color="#005A4A" />
             </TouchableOpacity>
             <Text style={styles.headerTitle} numberOfLines={1}>{exercicio.nome}</Text>
         </View>
@@ -135,10 +135,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: 'bold', marginBottom: 5 },
   group: { fontSize: 16, color: 'gray', marginBottom: 20, textTransform: 'uppercase' },
   section: { marginBottom: 20 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#1e6a43' },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#005A4A' },
   sectionText: { fontSize: 16, lineHeight: 24 },
   footer: { padding: 20, borderTopWidth: 1, borderTopColor: '#eee' },
-  addButton: { backgroundColor: '#1e6a43', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 15, borderRadius: 15 },
+  addButton: { backgroundColor: '#005A4A', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', padding: 15, borderRadius: 15 },
   addButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginLeft: 10 },
   // Modal Styles
   keyboardAvoidingView: { flex: 1 },
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   modalContainer: { width: '90%', backgroundColor: 'white', borderRadius: 15, padding: 20 },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   input: { borderWidth: 1, borderColor: '#ddd', padding: 12, borderRadius: 10, marginBottom: 15, fontSize: 16 },
-  saveButton: { backgroundColor: '#1e6a43', padding: 15, borderRadius: 10, alignItems: 'center' },
+  saveButton: { backgroundColor: '#005A4A', padding: 15, borderRadius: 10, alignItems: 'center' },
   saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
 

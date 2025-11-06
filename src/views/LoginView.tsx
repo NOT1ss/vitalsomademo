@@ -13,6 +13,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import GradientBackground from '../../components/GrandientBackground';
 import LoginButton from '../../components/LoginButton';
 import LoginInput from '../../components/LoginInput';
@@ -104,158 +105,162 @@ export default function LoginView() {
   };
 
   return (
-    
-    <GradientBackground>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView 
-        style={styles.container} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={RNStatusBar.currentHeight || 0}
-      >
-        <StatusBar style="light" />
-        
-        <View style={styles.header}>
-          <Animated.Text 
-            style={[
-              styles.title,
-              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
-            ]}
-          >
-            Bem-vindo
-          </Animated.Text>
-          <Animated.Text 
-            style={[
-              styles.subtitle,
-              { 
-                opacity: fadeAnim, 
-                transform: [{ translateY: slideAnim }],
-              }
-            ]}
-          >
-            Treine, compartilhe, evolua 🔥
-          </Animated.Text>
-        </View>
-        
-        <Animated.View 
-          style={[
-            styles.formContainer,
-            { 
-              opacity: fadeAnim, 
-              transform: [{ translateY: slideAnim }] 
-            }
-          ]}
+    <SafeAreaView style={styles.safeArea}>
+      <GradientBackground>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView 
+          style={styles.container} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={RNStatusBar.currentHeight || 0}
         >
-          <ScrollView 
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <TabSelector 
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-            />
-            
-            <Animated.View
+          <StatusBar style="light" />
+          
+          <View style={styles.header}>
+            <Animated.Text 
               style={[
-                styles.inputContainer,
+                styles.title,
+                { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
+              ]}
+            >
+              Bem-vindo
+            </Animated.Text>
+            <Animated.Text 
+              style={[
+                styles.subtitle,
                 { 
-                  opacity: tabFadeAnim,
-                  transform: [{ translateY: tabSlideAnim }] 
+                  opacity: fadeAnim, 
+                  transform: [{ translateY: slideAnim }],
                 }
               ]}
             >
-              <LoginInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Digite seu e-mail"
-                keyboardType="email-address"
-                iconName="mail-outline"
+              Treine, compartilhe, evolua 🔥
+            </Animated.Text>
+          </View>
+          
+          <Animated.View 
+            style={[
+              styles.formContainer,
+              { 
+                opacity: fadeAnim, 
+                transform: [{ translateY: slideAnim }] 
+              }
+            ]}
+          >
+            <ScrollView 
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <TabSelector 
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
               />
               
-              <LoginInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder={activeTab === 'login' ? "Digite sua senha" : "Crie uma senha"}
-                secureTextEntry={!showPassword}
-                iconName="lock-closed-outline"
-                rightIcon={showPassword ? "eye-outline" :"eye-off-outline" }
-                onRightIconPress={toggleShowPassword}
-                disableAutofill={true}
+              <Animated.View
+                style={[
+                  styles.inputContainer,
+                  { 
+                    opacity: tabFadeAnim,
+                    transform: [{ translateY: tabSlideAnim }] 
+                  }
+                ]}
+              >
+                <LoginInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Digite seu e-mail"
+                  keyboardType="email-address"
+                  iconName="mail-outline"
+                />
                 
-              />
-              
-              {activeTab === 'signup' && (
-                <>
-                  <LoginInput
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
-                    placeholder="Confirme sua senha"
-                    secureTextEntry={!showPassword}
-                    iconName="lock-closed-outline"
-                    autoCapitalize="none"
-                    disableAutofill={true}
-                  />
+                <LoginInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder={activeTab === 'login' ? "Digite sua senha" : "Crie uma senha"}
+                  secureTextEntry={!showPassword}
+                  iconName="lock-closed-outline"
+                  rightIcon={showPassword ? "eye-outline" :"eye-off-outline" }
+                  onRightIconPress={toggleShowPassword}
+                  disableAutofill={true}
                   
-                  {password.length > 0 && (
-                    <Text style={[
-                      styles.strengthText,
-                      { 
-                        color: password.length < 6 ? 'red' : 
-                              (password.length >= 8 ? 'green' : 'orange')
-                      }
-                    ]}>
-                      Força da senha: {password.length < 6 ? 'Fraca' : 
-                                      (password.length >= 8 ? 'Forte' : 'Média')}
-                    </Text>
-                  )}
-                </>
-              )}
-              
-              {activeTab === 'login' && (
-                <Pressable 
-                  onPress={navigateToForgotPassword}
-                  style={styles.forgotPasswordContainer}
-                >
-                  <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-                </Pressable>
-              )}
-              
-              <LoginButton
-                title={activeTab === 'login' ? "Entrar" : "Cadastrar"}
-                onPress={activeTab === 'login' ? login : signUp}
-                loading={loading}
-                style={styles.loginButton}
-              />
-              
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>ou</Text>
-                <View style={styles.divider} />
-              </View>
-              
-              {/* 
-              Botão Google desativado para futuras atualizações.
-              Para reativar, descomente o código abaixo.
-              */}
-              
-              <LoginButton
-                title="Google"
-                onPress={login}
-                primary={false}
-                icon="logo-google"
-                style={styles.googleButton}
-              />
-              
-            </Animated.View>
-          </ScrollView>
-        </Animated.View>
-      </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </GradientBackground>
+                />
+                
+                {activeTab === 'signup' && (
+                  <>
+                    <LoginInput
+                      value={confirmPassword}
+                      onChangeText={setConfirmPassword}
+                      placeholder="Confirme sua senha"
+                      secureTextEntry={!showPassword}
+                      iconName="lock-closed-outline"
+                      autoCapitalize="none"
+                      disableAutofill={true}
+                    />
+                    
+                    {password.length > 0 && (
+                      <Text style={[
+                        styles.strengthText,
+                        { 
+                          color: password.length < 6 ? 'red' : 
+                                (password.length >= 8 ? 'green' : 'orange')
+                        }
+                      ]}>
+                        Força da senha: {password.length < 6 ? 'Fraca' : 
+                                        (password.length >= 8 ? 'Forte' : 'Média')}
+                      </Text>
+                    )}
+                  </>
+                )}
+                
+                {activeTab === 'login' && (
+                  <Pressable 
+                    onPress={navigateToForgotPassword}
+                    style={styles.forgotPasswordContainer}
+                  >
+                    <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+                  </Pressable>
+                )}
+                
+                <LoginButton
+                  title={activeTab === 'login' ? "Entrar" : "Cadastrar"}
+                  onPress={activeTab === 'login' ? login : signUp}
+                  loading={loading}
+                  style={styles.loginButton}
+                />
+                
+                <View style={styles.dividerContainer}>
+                  <View style={styles.divider} />
+                  <Text style={styles.dividerText}>ou</Text>
+                  <View style={styles.divider} />
+                </View>
+                
+                {/* 
+                Botão Google desativado para futuras atualizações.
+                Para reativar, descomente o código abaixo.
+                */}
+                
+                <LoginButton
+                  title="Google"
+                  onPress={login}
+                  primary={false}
+                  icon="logo-google"
+                  style={styles.googleButton}
+                />
+                
+              </Animated.View>
+            </ScrollView>
+          </Animated.View>
+        </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </GradientBackground>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },

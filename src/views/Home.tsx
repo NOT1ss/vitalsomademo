@@ -4,6 +4,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackParamList } from "../navigation/types";
 import supabase from '../supabaseClient';
 
@@ -27,42 +28,46 @@ export default function HomeView() {
   }, []);
 
   return (
-    
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
 
-      <StatusBar style="dark" />
-      
-      <View style={styles.header}>
-        <Text style={styles.title}>Página Inicial</Text>
-        <Pressable onPress={handleLogout} style={styles.logoutButton}>
-          <Ionicons name="log-out-outline" size={24} color="#00A572" />
-          <Text style={styles.logoutText}>Sair</Text>
-        </Pressable>
-      </View>
+        <StatusBar style="dark" />
+        
+        <View style={styles.header}>
+          <Text style={styles.title}>Página Inicial</Text>
+          <Pressable onPress={handleLogout} style={styles.logoutButton}>
+            <Ionicons name="log-out-outline" size={24} color="#005A4A" />
+            <Text style={styles.logoutText}>Sair</Text>
+          </Pressable>
+        </View>
 
-      
-      
-      <View style={styles.content}>      
-        {email ? (
-        <Text>Usuário logado: {email}</Text>
-      ) : (
-        <Text>Nenhum usuário logado</Text>
-      )}
-        <Text style={styles.welcomeText}>
-          Login realizado com sucesso!! 
-        </Text>
-        <Text style={styles.instructionText}>
-          Esta é a página inicial da aplicação.
-        </Text>
+        
+        
+        <View style={styles.content}>      
+          {email ? (
+          <Text>Usuário logado: {email}</Text>
+        ) : (
+          <Text>Nenhum usuário logado</Text>
+        )}
+          <Text style={styles.welcomeText}>
+            Login realizado com sucesso!! 
+          </Text>
+          <Text style={styles.instructionText}>
+            Esta é a página inicial da aplicação.
+          </Text>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  container: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

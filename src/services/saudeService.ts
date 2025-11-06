@@ -222,6 +222,8 @@ export const calculateTrainingStreak = async (): Promise<number> => {
 
   const trainingDates = data.map(d => new Date(d.date + 'T00:00:00'));
 
+  console.log('[calculateTrainingStreak] trainingDates:', trainingDates);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -229,9 +231,15 @@ export const calculateTrainingStreak = async (): Promise<number> => {
   yesterday.setDate(yesterday.getDate() - 1);
   yesterday.setHours(0, 0, 0, 0);
 
+  console.log('[calculateTrainingStreak] today:', today);
+  console.log('[calculateTrainingStreak] yesterday:', yesterday);
+
   const mostRecentTraining = trainingDates[0];
 
+  console.log('[calculateTrainingStreak] mostRecentTraining:', mostRecentTraining);
+
   if (mostRecentTraining.getTime() !== today.getTime() && mostRecentTraining.getTime() !== yesterday.getTime()) {
+    console.log('[calculateTrainingStreak] Streak broken, returning 0.');
     return 0;
   }
 
@@ -243,13 +251,21 @@ export const calculateTrainingStreak = async (): Promise<number> => {
     const expectedPreviousDate = new Date(lastDate);
     expectedPreviousDate.setDate(expectedPreviousDate.getDate() - 1);
 
+    console.log(`[calculateTrainingStreak] Loop ${i}:`);
+    console.log(`[calculateTrainingStreak]   lastDate: ${lastDate}`);
+    console.log(`[calculateTrainingStreak]   currentDate: ${currentDate}`);
+    console.log(`[calculateTrainingStreak]   expectedPreviousDate: ${expectedPreviousDate}`);
+
     if (currentDate.getTime() === expectedPreviousDate.getTime()) {
       streak++;
+      console.log(`[calculateTrainingStreak]   Streak incremented to ${streak}`);
     } else {
-
+      console.log('[calculateTrainingStreak]   Streak broken in loop.');
       break;
     }
   }
+
+  console.log(`[calculateTrainingStreak] Final streak: ${streak}`);
 
   return streak;
 };
@@ -530,6 +546,7 @@ export const getDicasSaude = async (): Promise<string[]> => {
  * @param pointsToAdd A quantidade de pontos a ser adicionada.
  */
 export const addPoints = async (userId: number, pointsToAdd: number) => {
+  console.log(`[addPoints] Function called with userId: ${userId}, pointsToAdd: ${pointsToAdd}`);
   try {
     console.log(`[addPoints] Adicionando ${pointsToAdd} pontos para o usuário ${userId}`);
     

@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import useEsqueciSenhaViewModel from '../viewmodels/EsqueciSenhaViewModel';
 
 export default function EsqueciSenhaScreen() {
@@ -11,48 +11,53 @@ export default function EsqueciSenhaScreen() {
   } = useEsqueciSenhaViewModel();
 
   return (
-    <LinearGradient
-      colors={['#E9FCE9', '#FFFFFF']}
-      style={styles.container}
-    >
-      <Image
-        source={require('../../assets/images/image 41.png')}
-        style={styles.image}
-        resizeMode="contain"
-      />
-
-      <Text style={styles.title}>Esqueceu a senha?</Text>
-      <Text style={styles.subtitle}>
-        Não se preocupe! Acontece. Por favor, insira{'\n'}o e-mail associado à sua conta.
-      </Text>
-
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholder="Insira Seu Email"
-          placeholderTextColor="#A1A1A1"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        colors={['#E9FCE9', '#FFFFFF']}
+        style={styles.container}
+      >
+        <Image
+          source={require('../../assets/images/image 41.png')}
+          style={styles.image}
+          resizeMode="contain"
         />
-      </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleSend}>
-        <Text style={styles.buttonText}>Enviar Código</Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>Esqueceu a senha?</Text>
+        <Text style={styles.subtitle}>
+          Não se preocupe! Acontece. Por favor, insira{'\n'}o e-mail associado à sua conta.
+        </Text>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Consegue lembrar da senha?</Text>
-        <Pressable onPress={handleBackToLogin}>
-          <Text style={styles.linkText}> Entrar</Text>
-        </Pressable>
-      </View>
-    </LinearGradient>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.input}
+            placeholder="Insira Seu Email"
+            placeholderTextColor="#A1A1A1"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleSend}>
+          <Text style={styles.buttonText}>Enviar Código</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Consegue lembrar da senha?</Text>
+          <Pressable onPress={handleBackToLogin}>
+            <Text style={styles.linkText}> Entrar</Text>
+          </Pressable>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,

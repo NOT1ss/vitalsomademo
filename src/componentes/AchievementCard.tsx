@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   highlight: {
-    color: '#16a34a', // green-600
+    color: '#005A4A', // green-600
     fontWeight: 'bold',
     marginTop: 4,
   },

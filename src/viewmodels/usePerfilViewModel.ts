@@ -115,9 +115,9 @@ export const usePerfilViewModel = () => {
 
   const handleSaveChanges = async () => {
     const newGoal = parseInt(calorieGoalInput, 10);
-    const newAltura = parseFloat(alturaInput.replace(',', '.'));
-    const newPeso = parseFloat(pesoInput.replace(',', '.'));
-    const newPesoMeta = parseFloat(pesoMetaInput.replace(',', '.'));
+    const newAltura = parseFloat(alturaInput.replace(',', '.').replace(/[^0-9.]/g, ''));
+    const newPeso = parseFloat(pesoInput.replace(',', '.').replace(/[^0-9.]/g, ''));
+    const newPesoMeta = parseFloat(pesoMetaInput.replace(',', '.').replace(/[^0-9.]/g, ''));
 
     if (isNaN(newGoal) || newGoal <= 0 || isNaN(newAltura) || newAltura <= 0 || isNaN(newPeso) || newPeso <= 0) {
       Alert.alert('Valores inválidos', 'Por favor, insira números válidos para os campos de calorias, altura e peso.');

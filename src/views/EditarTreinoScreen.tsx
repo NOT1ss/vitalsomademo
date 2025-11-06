@@ -43,7 +43,7 @@ export default function EditarTreinoScreen() {
                     ListFooterComponent={
                         // CORREÇÃO: O onPress agora chama a função com o nome correto
                         <TouchableOpacity style={styles.addButton} onPress={handleAdicionarExercicio}>
-                            <Ionicons name="add" size={24} color="#1e6a43" />
+                            <Ionicons name="add" size={24} color="#005A4A" />
                             <Text style={styles.addButtonText}>Adicionar Exercício</Text>
                         </TouchableOpacity>
                     }
@@ -71,10 +71,10 @@ const styles = StyleSheet.create({
     exercicioNome: { fontWeight: 'bold' },
     exercicioDesc: { fontSize: 12, color: '#666' },
     removerButton: { padding: 8 },
-    addButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#1e6a43', borderStyle: 'dashed', borderRadius: 12, padding: 15, marginHorizontal: 20, marginTop: 10 },
-    addButtonText: { marginLeft: 10, color: '#1e6a43', fontWeight: 'bold' },
+    addButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#005A4A', borderStyle: 'dashed', borderRadius: 12, padding: 15, marginHorizontal: 20, marginTop: 10 },
+    addButtonText: { marginLeft: 10, color: '#005A4A', fontWeight: 'bold' },
     footerButtons: { flexDirection: 'row', justifyContent: 'space-around', padding: 20, borderTopWidth: 1, borderTopColor: '#e5e5e5', backgroundColor: '#f0f0f0' },
-    footerButton: { borderWidth: 1.5, borderColor: '#1e6a43', borderRadius: 20, paddingVertical: 12, width: '48%', alignItems: 'center' },
-    footerButtonText: { color: '#1e6a43', fontWeight: 'bold' },
-    salvarButton: { backgroundColor: '#1e6a43' },
+    footerButton: { borderWidth: 1.5, borderColor: '#005A4A', borderRadius: 20, paddingVertical: 12, width: '48%', alignItems: 'center' },
+    footerButtonText: { color: '#005A4A', fontWeight: 'bold' },
+    salvarButton: { backgroundColor: '#005A4A' },
 });

@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import useNovaSenhaViewModel from '../viewmodels/NovaSenhaViewModel';
 
 export default function NovaSenhaScreen() {
@@ -15,59 +15,64 @@ export default function NovaSenhaScreen() {
   const navigation = useNavigation();
 
   return (
-    <LinearGradient
-      colors={['#ebf8cf', '#FFFFFF']}
-      style={styles.container}
-    >
-      <Image
-        source={require('../../assets/images/ideianova.png')}
-        style={styles.image}
-        resizeMode="contain"
-      />
-
-      <Text style={styles.title}>Refaça a senha</Text>
-      <Text style={styles.subtitle}>Por favor, digite algo que você irá lembrar!</Text>
-
-      <View style={styles.inputWrapper}>
-        <TextInput
-          secureTextEntry
-          style={styles.input}
-          placeholder="Insira a senha"
-          placeholderTextColor="#A1A1A1"
-          value={senha}
-          onChangeText={setSenha}
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        colors={['#ebf8cf', '#FFFFFF']}
+        style={styles.container}
+      >
+        <Image
+          source={require('../../assets/images/ideianova.png')}
+          style={styles.image}
+          resizeMode="contain"
         />
-      </View>
 
-      <View style={styles.inputWrapper}>
-        <TextInput
-          secureTextEntry
-          style={styles.input}
-          placeholder="Confirme a senha"
-          placeholderTextColor="#A1A1A1"
-          value={confirmarSenha}
-          onChangeText={setConfirmarSenha}
-        />
-      </View>
+        <Text style={styles.title}>Refaça a senha</Text>
+        <Text style={styles.subtitle}>Por favor, digite algo que você irá lembrar!</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleConfirmar}>
-        <Text style={styles.buttonText}>Confirmar</Text>
-      </TouchableOpacity>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            secureTextEntry
+            style={styles.input}
+            placeholder="Insira a senha"
+            placeholderTextColor="#A1A1A1"
+            value={senha}
+            onChangeText={setSenha}
+          />
+        </View>
 
-      <Text style={styles.footerText}>
-        Consegue lembrar da senha?{' '}
-        <Text
-          style={styles.linkText}
-          onPress={() => navigation.navigate('Login')}
-        >
-          Entrar
+        <View style={styles.inputWrapper}>
+          <TextInput
+            secureTextEntry
+            style={styles.input}
+            placeholder="Confirme a senha"
+            placeholderTextColor="#A1A1A1"
+            value={confirmarSenha}
+            onChangeText={setConfirmarSenha}
+          />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleConfirmar}>
+          <Text style={styles.buttonText}>Confirmar</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.footerText}>
+          Consegue lembrar da senha?{' '}
+          <Text
+            style={styles.linkText}
+            onPress={() => navigation.navigate('Login')}
+          >
+            Entrar
+          </Text>
         </Text>
-      </Text>
-    </LinearGradient>
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     paddingHorizontal: 25,

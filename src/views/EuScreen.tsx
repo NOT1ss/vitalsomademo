@@ -1,55 +1,84 @@
-// src/views/EuScreen.tsx
-
+// src/screens/EuScreen.tsx
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import OptimizedImage from '../componentes/OptimizedImage';
 import { usePerfilViewModel } from '../viewmodels/usePerfilViewModel';
 
 // --- COMPONENTES LOCAIS ---
 
-const InfoBox = ({ label, value, category }: { label: string; value: string | number | undefined, category?: 'bom' | 'regular' | 'ruim' | null }) => {
-  const categoryStyle = category === 'bom' ? styles.infoBoxGood :
-                      category === 'regular' ? styles.infoBoxRegular :
-                      category === 'ruim' ? styles.infoBoxBad :
-                      {};
+type InfoBoxProps = {
+  label: string;
+  value: string | number | undefined;
+  category?: 'bom' | 'regular' | 'ruim' | null;
+};
+
+const InfoBox: React.FC<InfoBoxProps> = ({ label, value, category }) => {
+  const categoryStyle =
+    category === 'bom'
+      ? styles.infoBoxGood
+      : category === 'regular'
+      ? styles.infoBoxRegular
+      : category === 'ruim'
+      ? styles.infoBoxBad
+      : {};
 
   return (
     <View style={[styles.infoBox, categoryStyle]}>
-      <Text style={[styles.infoBoxLabel, (category) && styles.infoBoxLabelColored]}>{label}</Text>
-      <Text style={[styles.infoBoxValue, (category) && styles.infoBoxValueColored]}>{value || '--'}</Text>
+      <Text style={[styles.infoBoxLabel, category && styles.infoBoxLabelColored]}>{label}</Text>
+      <Text style={[styles.infoBoxValue, category && styles.infoBoxValueColored]}>
+        {value ?? '--'}
+      </Text>
     </View>
   );
 };
 
-const CollapsibleCard = ({ title, children, iconName }: { title: string, children: React.ReactNode, iconName: keyof typeof Ionicons.glyphMap }) => {
+const CollapsibleCard: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  iconName: keyof typeof Ionicons.glyphMap;
+}> = ({ title, children, iconName }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <View style={styles.collapsibleContainer}>
-      <TouchableOpacity style={styles.collapsibleHeader} onPress={() => setIsOpen(!isOpen)} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.collapsibleHeader}
+        onPress={() => setIsOpen(!isOpen)}
+        activeOpacity={0.8}
+      >
         <View style={styles.collapsibleTitleContainer}>
-          <Ionicons name={iconName} size={20} color="#00695C" />
+          <Ionicons name={iconName} size={20} color="#005A4A" />
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
-        <Ionicons name={isOpen ? "chevron-up" : "chevron-down"} size={24} color="#333" />
+        <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={24} color="#333" />
       </TouchableOpacity>
-      {isOpen && (
-        <View style={styles.collapsibleContent}>
-          {children}
-        </View>
-      )}
+      {isOpen && <View style={styles.collapsibleContent}>{children}</View>}
     </View>
   );
-}
+};
 
 // --- TELA PRINCIPAL ---
 
 const EuScreen: React.FC = () => {
-  const { 
-    userData, 
-    loading, 
+  const {
+    userData,
+    loading,
     handleLogout,
     calorieGoalInput,
     setCalorieGoalInput,
@@ -66,7 +95,7 @@ const EuScreen: React.FC = () => {
     trainingStreak,
     top3Records,
     handleDeleteRecord,
-    // Para o modal de edição
+    // Modal & profile
     isEditModalVisible,
     setEditModalVisible,
     nomeInput,
@@ -77,7 +106,39 @@ const EuScreen: React.FC = () => {
     handleProfileUpdate,
   } = usePerfilViewModel();
 
-  if (loading && !isEditModalVisible) { // Não mostra loading de tela cheia se o modal estiver aberto
+  console.log('[EuScreen] trainingStreak:', trainingStreak);
+
+  // --- Animação das frases motivacionais ---
+  const phrases: string[][] = [
+    ['Treine.', 'Evolua.', 'Viva melhor. 🔥'],
+    ['Mova-se.', 'Supere-se.', 'Inspire-se. 💪'],
+    ['Mais energia.', 'Mais foco,', 'Mais você. 🏆'],
+  ];
+  const [motivationIndex, setMotivationIndex] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const cycle = () => {
+      Animated.timing(fadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }).start(() => {
+        setMotivationIndex((i) => (i + 1) % phrases.length);
+        Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+      });
+    };
+
+    const id = setInterval(cycle, 9000);
+    return () => clearInterval(id);
+  }, [fadeAnim]);
+
+  // Mensagem de salvo
+  const [showSavedMessage, setShowSavedMessage] = useState(false);
+  const handleSaveProfile = async () => {
+    await handleProfileUpdate();
+    setShowSavedMessage(true);
+    setTimeout(() => setShowSavedMessage(false), 2500);
+  };
+
+  // Loading global (se houver) - não mostrar tela cheia se modal de edição estiver aberto
+  if (loading && !isEditModalVisible) {
     return (
       <SafeAreaView style={styles.centered}>
         <ActivityIndicator size="large" color="#4F46E5" />
@@ -89,11 +150,11 @@ const EuScreen: React.FC = () => {
     <Modal
       animationType="fade"
       transparent={true}
-      visible={isEditModalVisible}
+      visible={!!isEditModalVisible}
       onRequestClose={() => setEditModalVisible(false)}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
         <TouchableWithoutFeedback onPress={() => setEditModalVisible(false)}>
@@ -101,14 +162,14 @@ const EuScreen: React.FC = () => {
             <TouchableWithoutFeedback>
               <View style={styles.editModalContainer}>
                 <Text style={styles.modalTitle}>Editar Perfil</Text>
-                
-                <TouchableOpacity onPress={handlePickImage} style={styles.avatarPicker}>
-                  <OptimizedImage 
-                    source={newAvatarUri ? { uri: newAvatarUri } : require('../../assets/images/eu.png')} 
+
+                <TouchableOpacity onPress={handlePickImage} style={styles.avatarPicker} activeOpacity={0.8}>
+                  <OptimizedImage
+                    source={newAvatarUri ? { uri: newAvatarUri } : require('../../assets/images/eu.png')}
                     style={styles.modalAvatar}
                   />
-                  <View style={styles.avatarEditIcon}>
-                    <Ionicons name="camera-reverse-outline" size={20} color="#fff" />
+                  <View style={styles.avatarEditIcon} pointerEvents="none">
+                    <Ionicons name="camera-outline" size={20} color="#fff" />
                   </View>
                 </TouchableOpacity>
 
@@ -121,13 +182,15 @@ const EuScreen: React.FC = () => {
                   placeholderTextColor="#999"
                 />
 
-                <TouchableOpacity 
-                  style={[styles.saveButton, isSaving && styles.saveButtonDisabled]} 
-                  onPress={handleProfileUpdate}
+                <TouchableOpacity
+                  style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                  onPress={handleSaveProfile}
                   disabled={isSaving}
                 >
                   {isSaving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Salvar Alterações</Text>}
                 </TouchableOpacity>
+
+                {showSavedMessage && <Text style={styles.savedMessage}>✅ Perfil atualizado!</Text>}
               </View>
             </TouchableWithoutFeedback>
           </View>
@@ -138,24 +201,62 @@ const EuScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {typeof isEditModalVisible === 'boolean' && renderEditModal()}
+      <StatusBar barStyle="dark-content" backgroundColor="#f8f9f8" />
+      {renderEditModal()}
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleOpenEditModal} style={styles.editButton}>
-            <Ionicons name="pencil" size={20} color="#333" />
+          <TouchableOpacity onPress={handleOpenEditModal} style={styles.editButton} hitSlop={{ top: 18, left: 18, right: 18, bottom: 18 }} activeOpacity={0.8}>
+            <Ionicons name="settings-outline" size={26} color="#6b6b6b" />
           </TouchableOpacity>
-          <OptimizedImage
-            source={userData?.avatar_url ? { uri: userData.avatar_url } : require('../../assets/images/eu.png')}
-            style={styles.profileImage}
-          />
-          <Text style={styles.userName}>{userData?.nome || 'Bem-vindo!'}</Text>
-          <Text style={styles.userEmail}>{userData?.email || 'email@exemplo.com'}</Text>
+
+          <View style={styles.headerContent} pointerEvents="box-none">
+            <View style={styles.avatarWrapper}>
+              <OptimizedImage
+                source={userData?.avatar_url ? { uri: userData.avatar_url } : require('../../assets/images/eu.png')}
+                style={styles.profileImage}
+              />
+            </View>
+
+            <View style={styles.headerText}>
+              <Text style={styles.welcomeText}>Bem-vindo(a),</Text>
+              <Text style={styles.userName}>{userData?.nome || 'Seu nome'}</Text>
+              <Text style={styles.userEmail}>{userData?.email || 'email@exemplo.com'}</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.infoContainer}>
-          <InfoBox label="Altura" value={`${userData?.altura || '--'} m`} />
-          <InfoBox label="Peso" value={`${userData?.peso || '--'} kg`} />
-          <InfoBox label="IMC" value={calculatedImc?.toFixed(2) || '--'} category={imcCategory} />
+        <Animated.View style={[{ opacity: fadeAnim }, styles.phrasesContainer]}>
+          {phrases[motivationIndex].map((line, idx) => (
+            <Text key={idx} style={idx < 2 ? styles.phraseGray : styles.phraseGreenLarge}>
+              {line}
+            </Text>
+          ))}
+        </Animated.View>
+
+        <View style={styles.topStatsCard}>
+          <View style={styles.statItem}>
+            <View style={styles.statIconWrapper}>
+              <Ionicons name="scale-outline" size={26} color="#fff" />
+            </View>
+            <Text style={styles.statValue}>{userData?.peso ? `${userData.peso} KG` : '--'}</Text>
+            <Text style={styles.statLabel}>Peso</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <View style={styles.statIconWrapper}>
+              <Ionicons name="person-outline" size={26} color="#fff" />
+            </View>
+            <Text style={styles.statValue}>{userData?.altura ? `${userData.altura} cm` : '--'}</Text>
+            <Text style={styles.statLabel}>Altura</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <View style={styles.statIconWrapper}>
+              <Ionicons name="bar-chart" size={26} color="#fff" style={{ transform: [{ scaleX: -1 }] }} />
+            </View>
+            <Text style={styles.statValue}>{calculatedImc ? calculatedImc.toFixed(2) : '--'}</Text>
+            <Text style={styles.statLabel}>IMC</Text>
+          </View>
         </View>
 
         <CollapsibleCard title="Minhas Metas e Dados" iconName="options-outline">
@@ -198,31 +299,32 @@ const EuScreen: React.FC = () => {
             placeholder="Ex: 2000"
             placeholderTextColor="#999"
           />
-          <TouchableOpacity 
-            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]} 
+
+          <TouchableOpacity
+            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
             onPress={handleSaveChanges}
             disabled={isSaving}
           >
-            {isSaving ? (
-              <ActivityIndicator color="#FFF" />
-            ) : (
-              <Text style={styles.buttonText}>Salvar Metas</Text>
-            )}
+            {isSaving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Salvar Metas</Text>}
           </TouchableOpacity>
         </CollapsibleCard>
 
         <CollapsibleCard title="Conquistas" iconName="trophy-outline">
           <View style={styles.achievementItem}>
             <Ionicons name="flame-outline" size={24} color="#f97316" />
-            <Text style={styles.achievementText}>Ofensiva de treinos: <Text style={{fontWeight: 'bold'}}>{trainingStreak} dias</Text></Text>
+            <Text style={styles.achievementText}>
+              Ofensiva de treinos: <Text style={{ fontWeight: 'bold' }}>{trainingStreak} dias</Text>
+            </Text>
           </View>
+
           <View style={styles.achievementItem}>
             <Ionicons name="barbell-outline" size={24} color="#3b82f6" />
             <Text style={styles.achievementText}>Recordes Pessoais:</Text>
           </View>
-          {top3Records.map(([exercicio, valor]) => (
+
+          {top3Records?.map(([exercicio, valor]) => (
             <View key={exercicio} style={styles.recordItem}>
-              <View style={{flex: 1}}>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.recordExercicio}>{exercicio}</Text>
                 <Text style={styles.recordValor}>{valor}</Text>
               </View>
@@ -237,7 +339,6 @@ const EuScreen: React.FC = () => {
           <Ionicons name="log-out-outline" size={22} color="white" />
           <Text style={styles.buttonText}>Deslogar</Text>
         </TouchableOpacity>
-        
       </ScrollView>
     </SafeAreaView>
   );
@@ -245,45 +346,83 @@ const EuScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  container: { flex: 1, backgroundColor: '#f8f9f8' },
-
-  // ===== HEADER =====
-  header: {
-    alignItems: 'center',
-    paddingVertical: 30,
+  container: {
+    flex: 1,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight ?? 0 : 0,
+  },
+
+  header: {
+    alignItems: 'flex-start',
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    backgroundColor: '#ffffff',
     position: 'relative',
+  },
+  headerContent: { flexDirection: 'row', alignItems: 'center', width: '100%' },
+  avatarWrapper: {
+    borderWidth: 5,
+    borderColor: '#005A4A',
+    borderRadius: 70,
+    padding: 3,
+    marginRight: 16,
+    backgroundColor: '#fff',
   },
   editButton: {
     position: 'absolute',
-    top: 18,
-    right: 18,
+    top: 14,
+    right: 14,
     backgroundColor: '#f1f1f1',
-    padding: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 1,
+    padding: 12,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e6e6e6',
+    zIndex: 20,
   },
   profileImage: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    marginBottom: 12,
+    marginBottom: 0,
     backgroundColor: '#f8f8f8',
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
   },
-  userName: { fontSize: 22, fontWeight: 'bold', color: '#1b5e20' },
-  userEmail: { fontSize: 15, color: '#777' },
-  // ===== INFO BOXES =====
-  // ===== INFO BOXES =====
+  headerText: { flex: 1 },
+  welcomeText: { fontSize: 16, color: '#666', marginBottom: 6 },
+  userName: { fontSize: 24, fontWeight: '700', color: '#1b5e20' },
+  userEmail: { fontSize: 16, color: '#777', marginTop: 2 },
+
+  phrasesContainer: { marginTop: 14, paddingHorizontal: 20, alignSelf: 'flex-start' },
+  phraseGray: { fontSize: 28, color: '#777', fontWeight: '600', textAlign: 'left', lineHeight: 34 },
+  phraseGreenLarge: { fontSize: 32, color: '#005A4A', fontWeight: '800', textAlign: 'left', lineHeight: 38 },
+
+  topStatsCard: {
+    marginHorizontal: 20,
+    marginTop: 18,
+    backgroundColor: '#323233',
+    borderRadius: 18,
+    paddingVertical: 28,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    elevation: 4,
+  },
+  statItem: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+  statIconWrapper: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#484848',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  statValue: { fontSize: 18, color: '#005A4A', fontWeight: '700' },
+  statLabel: { fontSize: 14, color: '#e6eef0', marginTop: 8 },
+
   infoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -291,40 +430,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 10,
   },
+
   infoBox: {
     alignItems: 'center',
     backgroundColor: '#fff',
     paddingVertical: 20,
     borderRadius: 12,
     width: '30%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
     elevation: 2,
   },
   infoBoxLabel: { fontSize: 14, color: '#777' },
+  infoBoxLabelColored: { color: '#005A4A', fontWeight: '600' },
   infoBoxValue: { fontSize: 18, fontWeight: 'bold', marginTop: 5, color: '#333' },
-  infoBoxGood: { backgroundColor: '#e8f5e9', borderColor: '#a5d6a7' },
-  infoBoxRegular: { backgroundColor: '#fffde7', borderColor: '#fff59d' },
-  infoBoxBad: { backgroundColor: '#ffebee', borderColor: '#ef9a9a' },
-  infoBoxLabelColored: { color: '#555' },
-  infoBoxValueColored: { color: '#111' },
+  infoBoxValueColored: { color: '#005A4A' },
+  infoBoxGood: { backgroundColor: '#005A4A' },
+  infoBoxRegular: { backgroundColor: '#fffde7' },
+  infoBoxBad: { backgroundColor: '#ffebee' },
 
-  // ===== COLLAPSIBLE CARDS =====
   collapsibleContainer: {
     marginHorizontal: 20,
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
     marginTop: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    elevation: 3,
   },
   collapsibleHeader: {
     flexDirection: 'row',
@@ -338,16 +466,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#2e7d32' },
-  collapsibleContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e5e5',
-  },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#005A4A' },
+  collapsibleContent: { paddingHorizontal: 20, paddingBottom: 20 },
 
-  // ===== INPUTS & BUTTONS =====
-  inputLabel: { fontSize: 14, color: '#555', marginBottom: 5, marginTop: 10 },
+  inputLabel: { fontSize: 14, color: '#5c5959ff', marginBottom: 5, marginTop: 10 },
   input: {
     backgroundColor: '#f5f5f5',
     borderWidth: 1,
@@ -360,20 +482,14 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   saveButton: {
-    backgroundColor: '#2e7d32',
+    backgroundColor: '#005A4A',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 2,
   },
   saveButtonDisabled: { backgroundColor: '#a5a5a5' },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
-
   logoutButton: {
     marginTop: 35,
     marginBottom: 50,
@@ -381,24 +497,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#5e5e5eff',
     padding: 15,
     borderRadius: 10,
-    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 2,
+    alignItems: 'center',
   },
 
-  // ===== CONQUISTAS =====
-  achievementItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 15,
-    gap: 10,
-  },
-  achievementText: { fontSize: 16, color: '#333' },
+  achievementItem: { flexDirection: 'row', alignItems: 'center', marginTop: 12, marginBottom: 10, gap: 10 },
+  achievementText: { fontSize: 16, color: '#6d6d6dff' },
   recordItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -409,10 +514,10 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   recordExercicio: { fontSize: 14, color: '#333' },
-  recordValor: { fontSize: 14, fontWeight: 'bold', color: '#2e7d32' },
+  recordValor: { fontSize: 14, fontWeight: 'bold', color: '#005A4A' },
   deleteRecordButton: { padding: 5 },
 
-  // ===== MODAL DE EDIÇÃO =====
+  // MODAL
   keyboardAvoidingView: { flex: 1 },
   modalOverlay: {
     flex: 1,
@@ -426,33 +531,39 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 25,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
-    elevation: 5,
   },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#2e7d32', marginBottom: 20 },
+  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#005A4A', marginBottom: 20 },
   avatarPicker: { marginBottom: 20, position: 'relative' },
   modalAvatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
     backgroundColor: '#f0f0f0',
-    borderWidth: 2,
-    borderColor: '#a5d6a7',
+    borderWidth: 3,
+    borderColor: '#005A4A',
+    alignSelf: 'center',
+    overflow: 'hidden',
   },
   avatarEditIcon: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#2e7d32',
-    padding: 8,
-    borderRadius: 20,
-    borderWidth: 2,
+    bottom: -8,
+    right: -8,
+    backgroundColor: '#005A4A',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
     borderColor: '#fff',
   },
-});
 
+  savedMessage: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#005A4A',
+    fontWeight: '600',
+  },
+});
 
 export default EuScreen;

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 // Cores primárias (As mesmas usadas na tela principal)
-const PRIMARY_GREEN = "#2E7D32"; 
+const PRIMARY_GREEN = "#005A4A"; 
 const LIGHT_GRAY = "#F1F1F1";
 const WHITE = "#FFFFFF";
 const BORDER_GRAY = "#E0E0E0";

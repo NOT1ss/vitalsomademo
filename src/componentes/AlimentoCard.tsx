@@ -17,8 +17,8 @@ const AlimentoCard: React.FC<Props> = ({ food, onAdd }) => {
           {food.kcal} kcal | {food.base_g} g
         </Text>
       </View>
-      <TouchableOpacity style={styles.addButton} onPress={() => onAdd(food)}>
-        <Ionicons name="add" size={28} color="#1e6a43" />
+      <TouchableOpacity style={styles.addButton} onPress={() => onAdd(food)} > 
+        <Ionicons name="add" size={28} color="#005A4A" />
       </TouchableOpacity>
     </View>
   );
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   foodInfo: {
-    color: '#d4edda',
+    color: '#005A4A',
     fontSize: 14,
     marginTop: 4,
   },

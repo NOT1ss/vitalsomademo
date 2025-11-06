@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View, SafeAreaView } from 'react-native';
 import useConfirmacaoCodigoViewModel from '../viewmodels/ConfirmacaoCodigoViewModel';
 import useEsqueciSenhaViewModel from '../viewmodels/EsqueciSenhaViewModel';
 export default function ConfirmacaoCodigoScreen() {
@@ -14,49 +14,54 @@ export default function ConfirmacaoCodigoScreen() {
   } = useEsqueciSenhaViewModel();
 
   return (
-    <LinearGradient
-      colors={['#e9ffda', '#FFFFFF']}
-      style={styles.container}
-    >
-      <Image
-        source={require('../../assets/images/imagejoia.png')}
-        style={styles.image}
-        resizeMode="contain"
-      />
-
-      <Text style={styles.title}>Enviamos um código</Text>
-      <Text style={styles.subtitle}>
-        Acabamos de enviar um código para o e-mail descrito. Confira sua caixa de mensagem.
-      </Text>
-
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          placeholder="Insira o código"
-          placeholderTextColor="#A1A1A1"
-          keyboardType="number-pad"
-          value={codigo}
-          onChangeText={setCodigo}
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        colors={['#e9ffda', '#FFFFFF']}
+        style={styles.container}
+      >
+        <Image
+          source={require('../../assets/images/imagejoia.png')}
+          style={styles.image}
+          resizeMode="contain"
         />
-      </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleConfirmar}>
-        <Text style={styles.buttonText}>Confirmar</Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>Enviamos um código</Text>
+        <Text style={styles.subtitle}>
+          Acabamos de enviar um código para o e-mail descrito. Confira sua caixa de mensagem.
+        </Text>
 
-      <View style={styles.footer}>
-              <Text style={styles.footerText}>Consegue lembrar da senha?</Text>
-              <Pressable onPress={handleBackToLogin}>
-                <Text style={styles.linkText}> Voltar</Text>
-              </Pressable>
-            </View>
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={styles.input}
+            placeholder="Insira o código"
+            placeholderTextColor="#A1A1A1"
+            keyboardType="number-pad"
+            value={codigo}
+            onChangeText={setCodigo}
+          />
+        </View>
 
-    </LinearGradient>
+        <TouchableOpacity style={styles.button} onPress={handleConfirmar}>
+          <Text style={styles.buttonText}>Confirmar</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+                <Text style={styles.footerText}>Consegue lembrar da senha?</Text>
+                <Pressable onPress={handleBackToLogin}>
+                  <Text style={styles.linkText}> Voltar</Text>
+                </Pressable>
+              </View>
+
+      </LinearGradient>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-container: {
+  safeArea: {
+    flex: 1,
+  },
+  container: {
     flex: 1,
     paddingHorizontal: 25,
     paddingTop: 145,

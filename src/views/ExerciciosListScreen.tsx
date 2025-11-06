@@ -29,7 +29,7 @@ const ExerciciosListScreen = () => {
   const renderItem = ({ item }: { item: Exercicio }) => (
     <TouchableOpacity style={styles.itemCard} onPress={() => handleExercicioPress(item.id)}>
       <Text style={styles.itemText}>{item.nome}</Text>
-      <Ionicons name="chevron-forward" size={24} color="#1e6a43" />
+      <Ionicons name="chevron-forward" size={24} color="#005A4A" />
     </TouchableOpacity>
   );
 
@@ -40,7 +40,7 @@ const ExerciciosListScreen = () => {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#1e6a43" />
+        <ActivityIndicator size="large" color="#005A4A" />
       </SafeAreaView>
     );
   }
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1e6a43',
+    backgroundColor: '#005A4A',
     paddingHorizontal: 15,
     paddingVertical: 15,
   },

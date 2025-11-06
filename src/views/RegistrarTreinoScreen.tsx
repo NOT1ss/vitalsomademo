@@ -103,7 +103,7 @@ export default function RegistrarTreinoScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Registrar Treino</Text>
           <TouchableOpacity onPress={fetchExerciciosPlanejados} style={styles.planButton}>
-            <Ionicons name="document-text-outline" size={24} color="#1e6a43" />
+            <Ionicons name="document-text-outline" size={24} color="#005A4A" />
           </TouchableOpacity>
         </View>
         <Text style={styles.subHeaderTitle}>{dia.diaCompleto}</Text>
@@ -120,7 +120,7 @@ export default function RegistrarTreinoScreen() {
           )}
           ListFooterComponent={
             <TouchableOpacity style={styles.addButton} onPress={handleAdicionarExercicio}>
-              <Ionicons name="add" size={28} color="#1e6a43" />
+              <Ionicons name="add" size={28} color="#FFFFFF" />
               <Text style={styles.addButtonText}>Adicionar Exercício Manualmente</Text>
             </TouchableOpacity>
           }
@@ -152,7 +152,7 @@ export default function RegistrarTreinoScreen() {
                         <Text style={styles.itemSubtitle}>{`${item.series}x ${item.repeticoes}`}</Text>
                     </View>
                     <TouchableOpacity style={styles.addFromPlanButton} onPress={() => adicionarExercicioDoPlano(item)}>
-                        <Ionicons name="add-circle" size={32} color="#16A34A" />
+                        <Ionicons name="add-circle" size={32} color="#005A4A" />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -181,9 +181,9 @@ const styles = StyleSheet.create({
   inputGroup: { flex: 1, marginHorizontal: 5 },
   inputLabel: { fontSize: 12, color: '#666', marginBottom: 4, textAlign: 'center' },
   inputDetalhe: { backgroundColor: '#f9f9f9', borderRadius: 8, paddingVertical: 10, textAlign: 'center', color: '#333', borderWidth: 1, borderColor: '#eee' },
-  addButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#e8f5e9', borderRadius: 12, padding: 15, marginHorizontal: 20, marginTop: 10, borderWidth: 1, borderColor: '#1e6a43', borderStyle: 'dashed' },
-  addButtonText: { marginLeft: 10, color: '#1e6a43', fontWeight: 'bold' },
-  saveButton: { position: 'absolute', bottom: 20, left: 20, right: 20, backgroundColor: '#16A34A', padding: 15, borderRadius: 12, alignItems: 'center', elevation: 3 },
+  addButton: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#005A4A', borderRadius: 12, padding: 15, marginHorizontal: 20, marginTop: 10, borderWidth: 1, borderColor: '#005A4A', borderStyle: 'dashed' },
+  addButtonText: { marginLeft: 10, color: '#FFFFFF', fontWeight: 'bold' },
+  saveButton: { position: 'absolute', bottom: 20, left: 20, right: 20, backgroundColor: '#005A4A', padding: 15, borderRadius: 12, alignItems: 'center', elevation: 3 },
   saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   // Modal Styles
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center' },

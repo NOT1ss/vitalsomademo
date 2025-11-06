@@ -147,6 +147,12 @@ export function useRegistrarTreinoViewModel() {
       const summary = await getDailySummary(todayString);
       const shouldAwardPoints = workoutDateString === todayString && !summary.trainingCompleted;
 
+      console.log('[handleSalvarTreino] Debugging scoring logic:');
+      console.log('[handleSalvarTreino] workoutDateString:', workoutDateString);
+      console.log('[handleSalvarTreino] todayString:', todayString);
+      console.log('[handleSalvarTreino] summary.trainingCompleted:', summary.trainingCompleted);
+      console.log('[handleSalvarTreino] shouldAwardPoints:', shouldAwardPoints);
+
       // Salva o treino e atualiza o status do dia
       await saveExercisesForDate(workoutDateString, treinosValidos);
       await updateDailySummary(profile.id, { training_completed: treinosValidos.length > 0 }, workoutDateString);
